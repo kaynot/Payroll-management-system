@@ -6,12 +6,14 @@ import DashboardLayout from "./components/template/Sidenav";
 import Dashboard from "./components/Pages/Dashboard";
 import SignIn from "./components/Pages/SignIn";
 import HR from "./components/Pages/HR";
-import Payroll from "./components/Pages/Payroll";
-import Attendance from "./components/Pages/Attendance";
+// import Payroll from "./components/Pages/Payroll";
+// import Attendance from "./components/Pages/Attendance";
 import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
+import { Attendance } from "./components/Pages/Attendance";
+import { Payroll } from "./components/Pages/Payroll";
 
-function App() {
+export const App = () => {
   return (
     <Router>
       <Routes>
@@ -33,6 +35,4 @@ function App() {
       </Routes>
     </Router>
   );
-}
-
-export default App;
+};
