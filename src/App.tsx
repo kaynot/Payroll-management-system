@@ -7,7 +7,7 @@ import Dashboard from "./components/Pages/Dashboard";
 import { SignIn } from "./components/Pages/SignIn";
 import { Payroll } from "./components/Pages/payroll";
 
-function App() {
+export const App = () => {
   return (
     <div>
       {/* <DashboardLayout /> */}
@@ -15,7 +15,5 @@ function App() {
       {/* <SignIn /> */}
       <Payroll/>
     </div>
-  );
+  )
 }
-
-export default App;
