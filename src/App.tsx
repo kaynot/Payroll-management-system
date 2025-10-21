@@ -1,15 +1,14 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react'
+import { Attendance } from './Component/Pages/Attendance'
+import { Payroll } from './Component/Pages/Payroll'
+import { Main } from './Component/Pages/Main'
 
-function App() {
-
+export const App = () => {
   return (
-   <div className='text-3xl font-bold underline text-center mt-20'>
-    PAYROLL MAN SYS
-   </div>
+    <div>App
+      <Attendance/>
+      <Payroll/>
+      <Main/>
+    </div>
   )
 }
-
-export default App
