@@ -29,7 +29,7 @@ export const Attendance = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ">
         {/* Present */}
         <div className="bg-white shadow-sm border rounded-xl p-4">
           <h2 className="text-gray-700 font-semibold mb-2">Present Today</h2>

@@ -1,7 +1,7 @@
 import React from 'react'
-import { Attendance } from './Component/Pages/Attendance'
-import { Payroll } from './Component/Pages/Payroll'
-import { Main } from './Component/Pages/Main'
+import { Attendance } from './components/Pages/Attendance'
+import { Payroll } from './components/Pages/Payroll'
+import { Main } from './components/Pages/Main'
 
 export const App = () => {
   return (
