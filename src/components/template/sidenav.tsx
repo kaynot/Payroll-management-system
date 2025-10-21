@@ -30,7 +30,7 @@ const navigation = [
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   //   const location = useLocation();
-  //   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // function handleLogout(event: MouseEvent<HTMLButtonElement, MouseEvent>): void {
   //     throw new Error("Function not implemented.");
