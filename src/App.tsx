@@ -1,19 +1,14 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
-import DashboardLayout from "./components/template/sidenav";
-import Dashboard from "./components/Pages/Dashboard";
-import { SignIn } from "./components/Pages/SignIn";
+import React from 'react'
+import { Attendance } from './components/Pages/Attendance'
+import { Payroll } from './components/Pages/Payroll'
+import { Main } from './components/Pages/Main'
 
-function App() {
+export const App = () => {
   return (
-    <div>
-      {/* <DashboardLayout /> */}
-      {/* <Dashboard /> */}
-      <SignIn />
+    <div>App
+      <Attendance/>
+      <Payroll/>
+      <Main/>
     </div>
-  );
+  )
 }
-
-export default App;
