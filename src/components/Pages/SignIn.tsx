@@ -1,10 +1,12 @@
 import React from "react";
 import logo from "../../assets/icon.ico";
+import { useNavigate } from "react-router-dom";
 
 export const SignIn = () => {
+  const navigate = useNavigate();
   return (
-    <div className="w-screen h-screen bg-[#f9fafb] flex flex-col justify-center items-center font-poppins">
-      <div className="bg-white flex flex-col items-center rounded-md p-8 border-[1px] shadow-xl">
+    <div className="bg-background flex flex-1 flex-col justify-center items-center font-poppins w-full h-screen">
+      <div className="bg-card flex flex-col items-center rounded-md p-8 border-[1px] shadow-xl">
         <div className="flex flex-col items-center gap-4 text-center pb-12">
           <div className="bg-gradient-to-br from-[#4f46e5] to-[#0ea5e9] p-4 rounded-xl text-white font-semibold text-sm">
             <img src={logo} alt="innorik-logo" className="w-8" />
@@ -21,7 +23,7 @@ export const SignIn = () => {
 
         <div className="flex flex-col w-96 gap-8">
           <form action="submit" method="post" className="flex flex-col ">
-            <div className="flex flex-col w-96 gap-8">
+            <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-2">
                 <label htmlFor="email" className="text-sm font-inter">
                   Email Address
@@ -29,7 +31,7 @@ export const SignIn = () => {
                 <input
                   type="email"
                   name="email"
-                  id="#"
+                  id="email"
                   placeholder="user@example.com"
                   className="py-[10px] px-4 border-[1px] border-gray-300 rounded-md bg-gray-50"
                 />
@@ -42,7 +44,7 @@ export const SignIn = () => {
                 <input
                   type="password"
                   name="password"
-                  id="#"
+                  id="password"
                   placeholder="••••••••"
                   className="py-[10px] px-4 border-[1px] border-gray-300 rounded-md bg-gray-50"
                 />
@@ -53,6 +55,7 @@ export const SignIn = () => {
           <button
             type="submit"
             className="bg-[#4f46e5] rounded-md py-3 text-white text-sm"
+            onClick={() => navigate("/")}
           >
             Sign In
           </button>
@@ -65,3 +68,5 @@ export const SignIn = () => {
     </div>
   );
 };
+
+export default SignIn;
