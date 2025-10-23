@@ -5,7 +5,8 @@ import "./App.css";
 import DashboardLayout from "./components/template/sidenav";
 import Dashboard from "./components/Pages/Dashboard";
 import { SignIn } from "./components/Pages/SignIn";
-import Payroll from "./components/Pages/Payroll";
+import { Payroll } from "./components/Pages/Payroll";
+// import Payroll from "./components/Pages/Payroll";
 
 
 export const App = () => {
