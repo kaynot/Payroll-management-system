@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Funnel } from "lucide-react";
 
 import { cn } from "../../lib/utils";
 
@@ -22,7 +22,13 @@ const SelectTrigger = React.forwardRef<
     )}
     {...props}
   >
-    {children}
+    {/* Funnel Icon (left side) */}
+    <Funnel className="mr-2 h-4 w-4 text-gray-500" />
+
+    {/* Selected text */}
+    <span className="flex-1 text-left">{children}</span>
+
+    {/* Dropdown arrow */}
     <SelectPrimitive.Icon asChild>
       <ChevronDown className="h-4 w-4 opacity-50" />
     </SelectPrimitive.Icon>

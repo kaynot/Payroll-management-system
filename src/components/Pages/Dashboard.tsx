@@ -1,4 +1,3 @@
-import React from "react";
 import { BadgeCent, TrendingUp, UserCheck, Users } from "lucide-react";
 import {
   Select,
@@ -6,7 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./../ui/select";
+} from "../ui/select";
 import StackedBarChart from "./charts/barchart";
 import DepartmentDonutChart from "./charts/piechart";
 import { motion } from "framer-motion";
@@ -21,7 +20,7 @@ function Dashboard() {
       className="flex flex-col gap-8"
     >
       <section className="flex flex-col gap-4">
-        <h1 className="font-bold text-3xl">Welcome back, Madam Akosua!</h1>
+        <h1 className="font-bold text-3xl">Welcome back, Akosua!</h1>
         <p className="text-[#65758b]">
           Here’s a quick snapshot of today’s payroll activities and workforce
           insights
