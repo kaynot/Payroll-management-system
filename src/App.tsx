@@ -11,8 +11,10 @@ import HR from "./components/Pages/HR";
 import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import { Attendance } from "./components/Pages/Attendance";
-import { Payroll } from "./components/Pages/Payroll";
+// import { Payroll } from "./components/Pages/Payroll";
 import DashboardLayout from "./components/template/sidenav";
+import Payroll from "./components/Pages/Payroll";
+// import { Payroll } from "./components/Pages/Payroll";
 
 export const App = () => {
   return (
