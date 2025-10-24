@@ -12,8 +12,8 @@ export interface Employee {
 }
 
 const centsToCurrency = (cents: number) => {
-  const dollars = cents / 100;
-  return dollars.toLocaleString(undefined, { style: "currency", currency: "USD" });
+  const cedis = cents / 100;
+  return cedis.toLocaleString(undefined, { style: "currency", currency: "GHS" });
 };
 
 const uid = (prefix = "emp") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
@@ -56,7 +56,6 @@ async function fetchPayroll(): Promise<Employee[]> {
   }
 }
 
-
 export default function PayrollPage() {
   const [employees, setEmployees] = useState<Employee[] | null>(null);
   const [query, setQuery] = useState("");
@@ -65,7 +64,6 @@ export default function PayrollPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [, setEditing] = useState<Employee | null>(null);
-  const [] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -111,13 +109,9 @@ export default function PayrollPage() {
     if (page > pageCount) setPage(pageCount);
   }, [pageCount, page]);
 
-  <><th className="p-2 cursor-pointer" onClick={() => toggleSort("lastName")}>Name</th><th className="p-2 cursor-pointer" onClick={() => toggleSort("department")}>Department</th><th className="p-2 cursor-pointer" onClick={() => toggleSort("baseSalary")}>Base Salary</th></>
-
-
   function openEdit(emp: Employee) {
     setEditing({ ...emp });
   }
-
 
   function exportCSV(list: Employee[]) {
     const headers = ["ID", "First Name", "Last Name", "Email", "Department", "Base Salary", "Deductions", "Net Pay"];
@@ -138,7 +132,7 @@ export default function PayrollPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `payroll_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `payroll_report_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -160,7 +154,7 @@ export default function PayrollPage() {
               onClick={() => exportCSV(filtered)}
               className="px-3 py-2 rounded-lg border hover:bg-gray-100"
             >
-              Export CSV
+              Export Report
             </button>
             <button
               onClick={() => {
@@ -176,11 +170,12 @@ export default function PayrollPage() {
               }}
               className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
             >
-              Add Employee
+              Generate Payslip
             </button>
           </div>
         </div>
 
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white shadow rounded-lg p-4">
             <h3 className="text-sm text-gray-500">Total Basic Salary</h3>
@@ -208,6 +203,7 @@ export default function PayrollPage() {
           </div>
         </div>
 
+        {/* Table */}
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-4">
             <input
@@ -306,8 +302,3 @@ export default function PayrollPage() {
     </div>
   );
 }
-
-function toggleSort(_arg0: string): void {
-  throw new Error("Function not implemented.");
-}
-
