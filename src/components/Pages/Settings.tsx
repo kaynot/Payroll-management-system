@@ -29,7 +29,7 @@ export default function Settings() {
         </div>
       </section>
       <section>
-        <Tabs defaultValue="account" className="flex flex-col w-full">
+        <Tabs defaultValue="company" className="flex flex-col w-full">
           <TabsList>
             <TabsTrigger value="company" className="w-full gap-2">
               <Building2 color="#000000" size={18} />

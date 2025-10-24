@@ -3,7 +3,7 @@ export const Company = () => {
     <section className="bg-card border rounded-lg p-6 flex flex-col gap-6">
       <h3 className="text-2xl font-semibold">Company Information</h3>
       <div className="grid flex-col gap-4 grid-cols-1">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2 lg:gap-4 md:gap-3">
           <div className="flex flex-col gap-2">
             <label htmlFor="company-name" className="text-sm font-semibold">
               Company Name

@@ -1,5 +1,12 @@
 import { motion } from "framer-motion";
-import { EllipsisVertical, Plus, Search, Users } from "lucide-react";
+import {
+  EllipsisVertical,
+  Plus,
+  Search,
+  SquarePen,
+  Trash2,
+  Users,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -16,6 +23,13 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/filter-select";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 const cardColors = [
   { bg: "bg-indigo-100", icon: "text-indigo-600", label: "Total Employees" },
@@ -141,8 +155,24 @@ export default function HR() {
                     </p>
                   </td>
                   <td className="p-4 text-end">
-                    <button className="px-3 py-1">
-                      <EllipsisVertical />
+                    <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition duration">
+                      <div className="flex flex-col justify-center items-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <EllipsisVertical className="mx-2 my-1" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <SquarePen />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500">
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </button>
                   </td>
                 </tr>
@@ -162,8 +192,24 @@ export default function HR() {
                     </p>
                   </td>
                   <td className="p-4 text-end">
-                    <button className="px-3 py-1">
-                      <EllipsisVertical />
+                    <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition duration">
+                      <div className="flex flex-col justify-center items-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <EllipsisVertical className="mx-2 my-1" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <SquarePen />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500">
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </button>
                   </td>
                 </tr>
@@ -183,8 +229,24 @@ export default function HR() {
                     </p>
                   </td>
                   <td className="p-4 text-end">
-                    <button className="px-3 py-1">
-                      <EllipsisVertical />
+                    <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition duration">
+                      <div className="flex flex-col justify-center items-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <EllipsisVertical className="mx-2 my-1" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <SquarePen />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500">
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </button>
                   </td>
                 </tr>
@@ -204,8 +266,24 @@ export default function HR() {
                     </p>
                   </td>
                   <td className="p-4 text-end">
-                    <button className="px-3 py-1">
-                      <EllipsisVertical />
+                    <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition duration">
+                      <div className="flex flex-col justify-center items-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <EllipsisVertical className="mx-2 my-1" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <SquarePen />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500">
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </button>
                   </td>
                 </tr>
@@ -226,8 +304,24 @@ export default function HR() {
                     </p>
                   </td>
                   <td className="p-4 text-end">
-                    <button className="px-3 py-1">
-                      <EllipsisVertical />
+                    <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition duration">
+                      <div className="flex flex-col justify-center items-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <EllipsisVertical className="mx-2 my-1" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>
+                              <SquarePen />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-500">
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </button>
                   </td>
                 </tr>
