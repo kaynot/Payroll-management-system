@@ -10,7 +10,26 @@ import StackedBarChart from "./charts/barchart";
 import DepartmentDonutChart from "./charts/piechart";
 import { motion } from "framer-motion";
 
-function Dashboard() {
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+
+import { Input } from "../ui/input";
+import { Checkbox } from "../ui/checkbox";
+import { useState } from "react";
+
+export const Dashboard = () => {
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    setCount(count + 1);
+  };
+
   return (
     <motion.main
       initial={{ opacity: 0, y: 20 }}
@@ -158,9 +177,9 @@ function Dashboard() {
       {/* recent activity, department attendance, pending actions */}
       <section className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-1 gap-6">
         {/* department attendance  */}
-        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
           <h1 className="font-medium text-lg">Department Attendance</h1>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 h-full overflow-auto overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-2 text-sm font-medium">
                 <div className="flex justify-between items-center">
@@ -242,45 +261,160 @@ function Dashboard() {
         </div>
 
         {/* pending actions */}
-        <div className="border-[1px] border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50/50 rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card">
-          <h1 className="font-medium text-lg">Pending Actions</h1>
+        <div className="border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50/50 rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
+          <div className="flex justify-between">
+            <h1 className="font-medium text-lg">Pending Actions</h1>
+            <p className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
+              {count} pending
+            </p>
+          </div>
 
-          <div className="flex flex-col justify-between h-full gap-8">
-            <div className="flex flex-col gap-2">
-              <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex gap-2">
-                <input
-                  type="checkbox"
-                  name="approve"
-                  id="approve"
-                  className="bg-primary"
-                />
-                <p>Approve overtime requests</p>
+          <div className="flex flex-col justify-between h-full">
+            <div className="flex flex-col gap-1 max-h-[280px] overflow-auto overflow-y-scroll h-64 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-1" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-1">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-[#f29d0e22] text-[#f29d0e] px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex gap-2">
-                <input type="checkbox" name="review" id="review" />
-                <p>Review tax deductions</p>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-2" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-2">Review tax deductions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-secondary/10 text-secondary px-2 rounded-full">
+                      medium
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex gap-2">
-                <input type="checkbox" name="confirm" id="confirm" />
-                <del>Confirm next pay date</del>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-3" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-3">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex gap-2">
-                <input type="checkbox" name="update" id="update" />
-                <p>Update salary templates</p>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-4" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-4">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-5" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-5">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-6" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-6">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <button className="bg-primary font-semibold text-white py-2 w-full rounded-full hover:bg-primary/95">
-              Add new reminder
-            </button>
+            {/* <button> */}
+            <Dialog>
+              <DialogTrigger className="bg-primary font-semibold text-white py-2 w-full rounded-full hover:bg-primary/95">
+                Add new reminder
+              </DialogTrigger>
+              <DialogContent className="space-y-2">
+                <DialogHeader className="flex space-y-2">
+                  <DialogTitle>Add New Reminder</DialogTitle>
+                  <DialogDescription>
+                    Add a new reminder to your dashboard
+                  </DialogDescription>
+                </DialogHeader>
+                <form action="#" method="post" className="flex flex-col gap-8">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="title">Title</label>
+                      <Input
+                        type="text"
+                        name="title"
+                        id="title"
+                        placeholder="Reminder Title"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="description">Description</label>
+                      <textarea
+                        name="description"
+                        id="description"
+                        className="rounded-lg border min-h-24 outline-primary px-3 py-2 text-base  bg-background resize-none placeholder:text-muted-foreground focus:bg-primary-foreground"
+                        placeholder="Reminder Description"
+                      ></textarea>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="priority">Priority</label>
+                      <Select>
+                        <SelectTrigger className="w-full rounded-lg">
+                          <SelectValue placeholder="select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">low</SelectItem>
+                          <SelectItem value="medium">medium</SelectItem>
+                          <SelectItem value="high">high</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="date">Due Date</label>
+                      <input
+                        type="date"
+                        name="date"
+                        id="date"
+                        className="outline-primary rounded-lg text-muted-foreground bg-background border px-3 py-1 w-full h-9 bg-"
+                      />
+                    </div>
+                  </div>
+                  <button className="bg-primary font-semibold text-white py-2 w-full rounded-full hover:bg-primary/95">
+                    Add reminder
+                  </button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            {/* </button> */}
           </div>
         </div>
 
         {/* recent activity */}
-        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
           <h1 className="font-medium text-lg">Recent Activity</h1>
 
-          <div className="flex flex-col justify-start gap-4">
+          <div className="flex flex-col justify-start gap-4 overflow-auto overflow-y-scroll h-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
             <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
               <div className="flex justify-between items-center">
                 <h1 className="font-medium">John Mensah</h1>
@@ -334,6 +468,6 @@ function Dashboard() {
       </section>
     </motion.main>
   );
-}
+};
 
 export default Dashboard;

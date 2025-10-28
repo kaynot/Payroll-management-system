@@ -141,10 +141,10 @@ const DashboardLayout = () => {
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger>
-                <Button variant="ghost" size="icon" className="relative">
+                {/* <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
-                </Button>
+                </Button> */}
               </PopoverTrigger>
               <PopoverContent className="w-80 p-0">
                 <div className="p-3 border-b flex justify-between items-center">
