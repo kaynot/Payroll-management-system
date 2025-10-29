@@ -38,7 +38,7 @@ export const Dashboard = () => {
       transition={{ duration: 0.5, ease: "easeInOut" }}
       className="flex flex-col gap-8"
     >
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-2">
         <h1 className="font-bold text-3xl">Welcome back, Akosua!</h1>
         <p className="text-[#65758b]">
           Here’s a quick snapshot of today’s payroll activities and workforce

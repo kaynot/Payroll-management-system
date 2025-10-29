@@ -6,40 +6,43 @@ export const Payroll = () => {
         <div className="grid flex-col gap-4 grid-cols-1">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label htmlFor="address" className="text-sm font-medium">
+              <label htmlFor="income-tax" className="text-sm font-medium">
                 Income Tax Rate (%)
               </label>
               <input
                 type="number"
                 name="income-tax"
                 id="income-tax"
+                autoComplete="off"
                 className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
               />
-              <caption className="text-start text-muted-foreground text-[12px]">
+              <p className="text-start text-muted-foreground text-[12px]">
                 Standard income tax percentage
-              </caption>
+              </p>
             </div>
             <hr />
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label htmlFor="address" className="text-sm font-medium">
+                <label htmlFor="employee-ssnit" className="text-sm font-medium">
                   SSNIT Employee Contribution (%)
                 </label>
                 <input
                   type="number"
-                  name="income-tax"
-                  id="income-tax"
+                  name="employee-ssnit"
+                  id="employee-ssnit"
+                  autoComplete="off"
                   className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label htmlFor="address" className="text-sm font-medium">
+                <label htmlFor="employer-ssnit" className="text-sm font-medium">
                   SSNIT Employer Contribution (%)
                 </label>
                 <input
                   type="number"
-                  name="income-tax"
-                  id="income-tax"
+                  name="employer-ssnit"
+                  id="employer-ssnit"
+                  autoComplete="off"
                   className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
                 />
               </div>
@@ -50,7 +53,7 @@ export const Payroll = () => {
       {/* allowances */}
       <section className="bg-card border rounded-lg p-6 flex flex-col gap-6 shadow-sm">
         <h3 className="text-2xl font-semibold">Tax Configuration</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-4 md:gap-3 lg:gap-4">
           <div className="flex flex-col gap-2">
             <label
               htmlFor="transport-allowance"
@@ -62,6 +65,7 @@ export const Payroll = () => {
               type="number"
               name="transport-allowance"
               id="transport-allowance"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -73,6 +77,7 @@ export const Payroll = () => {
               type="number"
               name="house-allowance"
               id="house-allowance"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -84,6 +89,7 @@ export const Payroll = () => {
               type="tel"
               name="fuel-allowance"
               id="fuel-allowance"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -95,6 +101,7 @@ export const Payroll = () => {
               type="number"
               name="meal-allowance"
               id="meal-allowance"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>

@@ -35,7 +35,9 @@ import {
 } from "../ui/dropdown-menu";
 
 import { AddEmployee } from "./hr-management/AddEmployee";
-import { ViewEmployee } from "./hr-management/ViewEmployee";
+import { ViewEmployee } from "./hr-management/EmployeeProfile";
+import { EditEmployee } from "./hr-management/EditEmployee";
+import type { Employee } from "../../types/Employee";
 
 const cardColors = [
   { bg: "bg-indigo-100", icon: "text-indigo-600", label: "Total Employees" },
@@ -48,6 +50,46 @@ const cardColors = [
 
 export default function HR() {
   const [viewEmployeeOpen, setViewEmployeeOpen] = useState(false);
+  const [editEmployeeOpen, setEditEmployeeOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+
+  // Example Employee List
+  const employees: Employee[] = [
+    {
+      id: "001",
+      name: "John Mensah",
+      image: "/images/john.jpg",
+      joinDate: "2023-10-01",
+      firstName: "John",
+      lastName: "Mensah",
+      email: "john.mensah@example.com",
+      phone: "0244123456",
+      department: "Engineering",
+      position: "Software Engineer",
+      employmentType: "Full-time",
+      salary: 8500,
+      status: "Leave",
+      address: "Accra, Ghana",
+    },
+    {
+      id: "002",
+      name: "Sarah Adjei",
+      image: "../../assets/sarah.jpg",
+      joinDate: "2022-08-10",
+      firstName: "Sarah",
+      lastName: "Adjei",
+      email: "sarah.adjei@example.com",
+      phone: "0556789123",
+      department: "HR",
+      position: "HR Manager",
+      employmentType: "Full-time",
+      salary: 12000,
+      status: "Active",
+      address: "Kumasi, Ghana",
+    },
+  ];
 
   return (
     <motion.main
@@ -59,7 +101,7 @@ export default function HR() {
     >
       {/* HEADER */}
       <section className="flex gap-4 justify-between items-center">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <h1 className="font-bold text-3xl">HR Management</h1>
           <p className="text-[#65758b]">
             Manage employee records and information
@@ -69,7 +111,7 @@ export default function HR() {
       </section>
 
       {/* SUMMARY CARDS */}
-      <section className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-4 md:gap-6 lg:gap-6">
+      <section className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {cardColors.map((c, i) => (
           <div
             key={i}
@@ -94,10 +136,12 @@ export default function HR() {
           <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
             Employees List
           </h1>
-          <div className="bg-muted border py-1 px-4 rounded-full text-sm text-primary-foreground flex gap-4 items-center w-[50%]">
+          <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
             <Search size={16} color="#9ca3af" />
             <input
               type="text"
+              name="search-emp"
+              id="search-emp"
               placeholder="Search by name, ID, or department..."
               className="bg-muted text-muted-foreground text-sm outline-none w-full"
             />
@@ -142,53 +186,76 @@ export default function HR() {
             </thead>
 
             <tbody className="bg-white divide-y divide-gray-200">
-              <tr className="hover:bg-blue-50 border-b">
-                <td className="p-4 font-semibold">John Mensah</td>
-                <td className="p-4">001</td>
-                <td className="p-4">Engineering</td>
-                <td className="p-4 flex justify-start">
-                  <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
-                    NSS
-                  </p>
-                </td>
-                <td className="p-4">GH₵ 8,500</td>
-                <td className="p-4 flex justify-center">
-                  <p className="bg-blue-200 py-1 px-4 rounded-full text-xs text-blue-800 border border-blue-600 font-medium">
-                    On leave
-                  </p>
-                </td>
+              {employees.map((employee) => (
+                <tr key={employee.id} className="hover:bg-blue-50 border-b">
+                  <td className="p-4 font-semibold">{employee.name}</td>
+                  <td className="p-4">{employee.id}</td>
+                  <td className="p-4">{employee.department}</td>
+                  <td className="p-4 flex justify-start">
+                    <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
+                      {employee.employmentType}
+                    </p>
+                  </td>
+                  <td className="p-4">
+                    GH₵ {employee.salary.toLocaleString()}
+                  </td>
+                  <td className="p-4 flex justify-center">
+                    <p
+                      className={`py-1 px-4 rounded-full text-xs border font-medium ${
+                        employee.status === "Active"
+                          ? "bg-green-200 text-green-800 border-green-600"
+                          : employee.status === "Leave"
+                          ? "bg-blue-200 text-blue-800 border-blue-600"
+                          : "bg-red-200 text-red-800 border-red-600"
+                      }`}
+                    >
+                      {employee.status}
+                    </p>
+                  </td>
 
-                <td className="p-4 text-end">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
-                        <EllipsisVertical />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        onClick={() => setViewEmployeeOpen(true)}
-                      >
-                        <Eye /> View Employee
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <SquarePen /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-500">
-                        <Trash2 /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Modal here */}
-                  {viewEmployeeOpen && (
-                    <ViewEmployee onClose={() => setViewEmployeeOpen(false)} />
-                  )}
-                </td>
-              </tr>
+                  <td className="p-4 text-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
+                          <EllipsisVertical />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem
+                          onClick={() => setViewEmployeeOpen(true)}
+                        >
+                          <Eye /> View Employee
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setEditEmployeeOpen(true);
+                          }}
+                        >
+                          <SquarePen /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-500">
+                          <Trash2 /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+
+        {viewEmployeeOpen && (
+          <ViewEmployee onClose={() => setViewEmployeeOpen(false)} />
+        )}
+
+        {editEmployeeOpen && selectedEmployee && (
+          <EditEmployee
+            onClose={() => setEditEmployeeOpen(false)}
+            employee={selectedEmployee}
+          />
+        )}
 
         <Pagination>
           <PaginationContent>

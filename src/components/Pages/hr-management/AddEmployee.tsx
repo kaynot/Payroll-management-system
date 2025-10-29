@@ -41,7 +41,7 @@ export const AddEmployee = () => {
         </DialogHeader>
         <form action="#" method="post" className="flex flex-col gap-8">
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <div className="bg-primary text-primary-foreground text-sm flex items-center rounded-full w-6 justify-center">
@@ -49,21 +49,84 @@ export const AddEmployee = () => {
                   </div>
                   <div>Personal Information</div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">Full Name *</label>
-                  <Input type="text" required />
+                {/* title, first name, surname, other names */}
+                <div className="grid flex-col gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="title" className="text-sm font-semibold">
+                      Title *
+                    </label>
+                    <div>
+                      <Select name="title">
+                        <SelectTrigger
+                          id="title"
+                          className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                        >
+                          <SelectValue placeholder="Select title" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mr">Mr.</SelectItem>
+                          <SelectItem value="mrs">Mrs.</SelectItem>
+                          <SelectItem value="miss">Miss</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label
+                      htmlFor="first-name"
+                      className="text-sm font-semibold"
+                    >
+                      First Name *
+                    </label>
+                    <Input
+                      type="text"
+                      name="first-name"
+                      id="first-name"
+                      autoComplete="off"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="surname" className="text-sm font-semibold">
+                      Surname *
+                    </label>
+                    <Input type="text" name="surname" id="surname" required />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label
+                      htmlFor="other-names"
+                      className="text-sm font-semibold"
+                    >
+                      Other Names
+                    </label>
+                    <Input type="text" name="other-names" id="other-names" />
+                  </div>
                 </div>
               </div>
-              <div className="grid flex-col grid-cols-2 sm:gap-2 md-gap-4 lg:gap-4">
+              <div className="grid flex-col gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">
+                  <label htmlFor="email" className="text-sm font-semibold">
                     Email Address *
                   </label>
-                  <Input type="email" required />
+                  <Input
+                    type="email"
+                    name="email"
+                    id="email"
+                    autoComplete="off"
+                    required
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">Phone Number</label>
-                  <Input type="tel" />
+                  <label htmlFor="phone" className="text-sm font-semibold">
+                    Phone Number *
+                  </label>
+                  <Input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    autoComplete="off"
+                    required
+                  />
                 </div>
                 <div className="flex flex-col space-y-1">
                   <label
@@ -97,8 +160,15 @@ export const AddEmployee = () => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">Address</label>
-                  <Input type="text" />
+                  <label htmlFor="address" className="text-sm font-semibold">
+                    Address
+                  </label>
+                  <Input
+                    type="text"
+                    name="address"
+                    id="address"
+                    autoComplete="off"
+                  />
                 </div>
               </div>
             </div>
@@ -113,14 +183,20 @@ export const AddEmployee = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-4">
-                <div className="grid flex-col grid-cols-2 sm:gap-2 md-gap-4 lg:gap-4">
+                <div className="grid flex-col gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold">
+                    <label
+                      htmlFor="department"
+                      className="text-sm font-semibold"
+                    >
                       Department *
                     </label>
                     <div>
-                      <Select>
-                        <SelectTrigger className="w-full border rounded-md px-3 py-2 h-9 text-sm">
+                      <Select name="department">
+                        <SelectTrigger
+                          id="department"
+                          className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                        >
                           <SelectValue placeholder="Select department" />
                         </SelectTrigger>
                         <SelectContent>
@@ -137,10 +213,10 @@ export const AddEmployee = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold">
+                    <label htmlFor="position" className="text-sm font-semibold">
                       Job Position *
                     </label>
-                    <Input type="text" required />
+                    <Input type="text" name="position" id="position" required />
                   </div>
                   <div className="flex flex-col space-y-1">
                     <label
@@ -175,12 +251,15 @@ export const AddEmployee = () => {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-semibold">
+                    <label htmlFor="emp-type" className="text-sm font-semibold">
                       Employment Type *
                     </label>
                     <div>
-                      <Select>
-                        <SelectTrigger className="w-full border rounded-md px-3 py-2 h-9 text-sm">
+                      <Select name="emp-type">
+                        <SelectTrigger
+                          id="emp-type"
+                          className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                        >
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
                         <SelectContent>
@@ -195,10 +274,18 @@ export const AddEmployee = () => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold">
+                  <label
+                    htmlFor="rep-manager"
+                    className="text-sm font-semibold"
+                  >
                     Reporting Manager
                   </label>
-                  <Input type="text" className="w-full h-9" />
+                  <Input
+                    type="text"
+                    name="rep-manager"
+                    id="rep-manager"
+                    className="w-full h-9"
+                  />
                 </div>
               </div>
             </div>
@@ -212,16 +299,23 @@ export const AddEmployee = () => {
                   <div>Compensation</div>
                 </div>
               </div>
-              <div className="grid flex-col grid-cols-2 sm:gap-2 md-gap-4 lg:gap-4">
+              <div className="grid flex-col gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">Salary *</label>
-                  <Input type="number" required />
+                  <label htmlFor="salary" className="text-sm font-semibold">
+                    Salary *
+                  </label>
+                  <Input type="number" name="salary" id="salary" required />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">Pay Frequency</label>
+                  <label htmlFor="pay-freq" className="text-sm font-semibold">
+                    Pay Frequency
+                  </label>
                   <div>
-                    <Select>
-                      <SelectTrigger className="w-full border rounded-md px-3 py-2 h-9 text-sm">
+                    <Select name="pay-freq">
+                      <SelectTrigger
+                        id="pay-freq"
+                        className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                      >
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
@@ -234,12 +328,15 @@ export const AddEmployee = () => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold">
+                  <label htmlFor="emp-status" className="text-sm font-semibold">
                     Employment Status
                   </label>
                   <div>
-                    <Select>
-                      <SelectTrigger className="w-full border rounded-md px-3 py-2 h-9 text-sm">
+                    <Select name="emp-status">
+                      <SelectTrigger
+                        id="emp-status"
+                        className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                      >
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>

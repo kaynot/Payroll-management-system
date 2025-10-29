@@ -3,7 +3,7 @@ export const Policy = () => {
     <section className="flex flex-col gap-4">
       <section className="bg-card border rounded-lg p-6 flex flex-col gap-6 shadow-sm">
         <h3 className="text-2xl font-semibold">Leave Policies</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-4 md:gap-3 lg:gap-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="annual-leave" className="text-sm font-semibold">
               Annual Leave (days)
@@ -12,6 +12,7 @@ export const Policy = () => {
               type="number"
               name="annual-leave"
               id="annual-leave"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -23,6 +24,7 @@ export const Policy = () => {
               type="number"
               name="sick-leave"
               id="sick-leave"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -34,6 +36,7 @@ export const Policy = () => {
               type="number"
               name="maternal-leave"
               id="maternal-leave"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -45,6 +48,7 @@ export const Policy = () => {
               type="number"
               name="paternal-leave"
               id="paternal-leave"
+              autoComplete="off"
               className="bg-muted rounded-md py-[6px] px-3 outline-offset-4 outline-primary focus:bg-primary-foreground border"
             />
           </div>
@@ -52,7 +56,7 @@ export const Policy = () => {
       </section>
       <section className="bg-card border rounded-lg p-6 flex flex-col gap-6 shadow-sm">
         <h3 className="text-2xl font-semibold">Working Hours</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-4 md:gap-3 lg:gap-4">
           <div className="flex flex-col gap-2">
             <label htmlFor="start-time" className="text-sm font-semibold">
               Work Start Time

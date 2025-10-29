@@ -14,21 +14,19 @@ export default function Settings() {
       transition={{ duration: 0.5, ease: "easeInOut" }}
       className="flex flex-col gap-8"
     >
-      <section className="flex gap-4 justify-between items-center">
-        <div className="flex flex-col gap-4">
+      <section className="flex flex-col gap-2">
+        <div className="flex gap-4 justify-between items-center">
           <h1 className="font-bold text-3xl">Settings</h1>
-          <p className="text-[#65758b]">
-            Configure system settings and preferences
-          </p>
-        </div>
-        <div>
-          <button className="bg-primary px-4 py-2 rounded-md text-primary-foreground flex items-center gap-2 text-sm">
+          <button className="sm:flex hidden bg-primary px-4 py-2 rounded-md text-primary-foreground flex items-center gap-2 text-sm">
             <Save size={16} color="#fff" />
             Save Changes
           </button>
         </div>
+        <p className="text-[#65758b]">
+          Configure system settings and preferences
+        </p>
       </section>
-      <section>
+      <section className="flex flex-col gap-8">
         <Tabs defaultValue="company" className="flex flex-col w-full">
           <TabsList>
             <TabsTrigger value="company" className="w-full gap-2">
@@ -59,6 +57,10 @@ export default function Settings() {
             <Policy />
           </TabsContent>
         </Tabs>
+        <button className="sm:hidden  bg-primary px-4 py-2 rounded-md text-primary-foreground flex justify-center items-center gap-2 text-sm">
+          <Save size={16} color="#fff" />
+          Save Changes
+        </button>
       </section>
     </motion.main>
   );
