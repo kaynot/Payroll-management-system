@@ -167,8 +167,8 @@ const CheckInOut = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 relative overflow-hidden">
       {/* Background Glow Effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-secondary/20 rounded-full blur-3xl animate-pulse delay-300" />
+        <div className="absolute -top-44 -translate-x-24 w-[600px] h-[600px] bg-primary/15 rounded-full blur-3xl animate-pulse delay-75" />
+        <div className="absolute -bottom-44 translate-x-24 right-10 w-[600px] h-[600px] bg-secondary/15 rounded-full blur-3xl animate-pulse delay-75" />
       </div>
 
       {/* Time Display */}
@@ -184,10 +184,10 @@ const CheckInOut = () => {
 
       {/* Card Container */}
       <div className="relative w-full max-w-2xl z-10">
-        <div className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:bg-white/15 hover:border-white/30">
+        <div className="backdrop-blur-lg bg-white/5 border border-white/20 rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:border-white/25">
           <div className="text-center mb-6">
             <h1 className="text-3xl sm:text-4xl font-bold font-heading bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-              Employee Attendance Portal
+              Attendance Portal
             </h1>
             <p className="text-gray-400 mt-2 text-sm">
               Search your name or ID to mark your attendance
@@ -204,7 +204,7 @@ const CheckInOut = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="h-12 bg-white/5 border border-white/20 focus:ring-2 focus:ring-cyan-500 text-base text-gray-100 placeholder:text-gray-500"
+              className="h-12 bg-white/5 border border-white/20 focus:ring-2 focus:ring-cyan-500 text-base text-gray-100 placeholder:text-gray-500 px-4"
               disabled={isSearching}
             />
             <Button
@@ -226,12 +226,12 @@ const CheckInOut = () => {
             <div className="animate-fade-in space-y-6">
               <div className="h-px bg-white/10" />
               <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
-                <div className="flex-1 space-y-3">
-                  <div>
+                <div className="flex-1 space-y-6">
+                  <div className="flex flex-col gap-2">
                     <p className="text-xs text-gray-400 uppercase tracking-wide">
                       Employee Name
                     </p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-xl text-cyan-500 font-semibold">
                       {foundEmployee.name}
                     </p>
                   </div>
@@ -240,13 +240,15 @@ const CheckInOut = () => {
                       <p className="text-xs text-gray-400 uppercase">
                         Employee ID
                       </p>
-                      <p>{foundEmployee.id}</p>
+                      <p className="text-cyan-500">{foundEmployee.id}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 uppercase">
                         Department
                       </p>
-                      <p>{foundEmployee.department}</p>
+                      <p className="text-cyan-500">
+                        {foundEmployee.department}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -270,14 +272,14 @@ const CheckInOut = () => {
               {/* Last Check-In/Out */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Last Check-In</p>
-                  <p className="text-sm font-medium">
+                  <p className="text-xs text-gray-400 mb-2">Last Check-In</p>
+                  <p className="text-sm font-medium text-cyan-400">
                     {foundEmployee.lastCheckIn || "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Last Check-Out</p>
-                  <p className="text-sm font-medium">
+                  <p className="text-xs text-gray-400 mb-2">Last Check-Out</p>
+                  <p className="text-sm font-medium text-cyan-400">
                     {foundEmployee.lastCheckOut || "—"}
                   </p>
                 </div>
