@@ -25,7 +25,7 @@ export const SignIn = () => {
 
   return (
     <div className="bg-background flex flex-1 flex-col justify-center items-center font-poppins w-full h-screen">
-      <div className="bg-card flex flex-col items-center rounded-md p-8 border shadow-xl">
+      <div className="bg-card flex flex-col items-center rounded-2xl p-8 border shadow-xl">
         {/* Header */}
         <div className="flex flex-col items-center gap-4 text-center pb-12">
           <div className="bg-gradient-to-br from-indigo-600 to-sky-500 p-4 rounded-xl text-white font-semibold text-sm">
@@ -51,7 +51,7 @@ export const SignIn = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@example.com"
-                className="py-2.5 px-4 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="py-2.5 px-4 border border-border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -65,7 +65,7 @@ export const SignIn = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="py-2.5 px-4 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="py-2.5 px-4 border border-border rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>

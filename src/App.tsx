@@ -9,6 +9,7 @@ import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import { Attendance } from "./components/Pages/Attendance";
 import Payroll from "./components/Pages/Payroll";
+import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
 
 // Layout & Auth
 import DashboardLayout from "./components/template/sidenav";
@@ -23,9 +24,10 @@ export const App = () => {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public route */}
+          {/* Public routes */}
           <Route path="/login" element={<SignIn />} />
-
+          <Route path="/employee-checkin" element={<EmployeeCheckin />} />{" "}
+          {/* ✅ new public page */}
           {/* Protected Dashboard */}
           <Route
             path="/"
@@ -42,7 +44,6 @@ export const App = () => {
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-
           {/* 404 / Access denied */}
           <Route
             path="*"
