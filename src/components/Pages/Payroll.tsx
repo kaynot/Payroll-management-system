@@ -1,5 +1,13 @@
 import { motion } from "framer-motion";
-import { Download, EllipsisVertical, Eye, FileText, Search, SquarePen, Trash2 } from "lucide-react";
+import {
+  Download,
+  EllipsisVertical,
+  Eye,
+  FileText,
+  Search,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 
 import {
   Pagination,
@@ -17,7 +25,12 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "../ui/dropdown-menu";
 
 export const Payroll = () => {
   return (
@@ -88,54 +101,69 @@ export const Payroll = () => {
       </div>
 
       {/* Table */}
-      <section className="bg-card border p-6 rounded-lg flex flex-col gap-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
-            January 2025 Payroll
-          </h1>
-          <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
-            <Search size={16} color="#9ca3af" />
-            <input
-              type="text"
-              name="search-emp"
-              id="search-emp"
-              placeholder="Search by name, ID, or department..."
-              className="bg-muted text-muted-foreground text-sm outline-none w-full"
-            />
+      <section className="bg-card border p-6 rounded-lg flex flex-col justify-between gap-8 lg:min-h-[630px]">
+        <div className="flex flex-col gap-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
+              January 2025 Payroll
+            </h1>
+            <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
+              <Search size={16} color="#9ca3af" />
+              <input
+                type="text"
+                name="search-emp"
+                id="search-emp"
+                placeholder="Search by name, ID, or department..."
+                className="bg-muted text-muted-foreground text-sm outline-none w-full"
+              />
+            </div>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="employees">Employees</SelectItem>
+                <SelectItem value="nss">NSS Personnel</SelectItem>
+                <SelectItem value="interns">Interns</SelectItem>
+                <SelectItem value="others">Others</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="py-1 px-2 border border-gray-300 rounded-lg">
+              <input type="month" name="month" id="month" />
+            </div>
           </div>
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="employees">Employees</SelectItem>
-              <SelectItem value="nss">NSS Personnel</SelectItem>
-              <SelectItem value="interns">Interns</SelectItem>
-              <SelectItem value="others">Others</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="py-1 px-2 border border-gray-300 rounded-lg">
-            <input type="month" name="month" id="month" />
-          </div>
-        </div>
 
-        <div className="overflow-hidden rounded-3xl border">
-          <table className="min-w-full text-sm text-left">
-            <thead className="border-b bg-muted/50">
-              <tr>
-                <th className="p-4 font-medium">Name</th>
-                <th className="p-4 font-medium">ID</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Department</th>
-                <th className="p-4">Salary</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-end">Actions</th>
-              </tr>
-            </thead>
+          <div className="overflow-auto w-full">
+            <table className="w-full text-sm text-left">
+              <thead className="border-b">
+                <tr>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Name
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    ID
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Category
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Department
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Salary
+                  </th>
+                  <th className="h-12 px-4 text-center font-medium text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="h-12 px-4 text-center font-medium text-muted-foreground">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-            <tbody className="bg-white divide-y divide-gray-200">
-                <tr className="hover:bg-blue-50 border-b">
+              <tbody className="border-0">
+                <tr className="border-b transition-colors hover:bg-muted/40">
                   <td className="p-4 font-semibold">Kwame Mensah</td>
                   <td className="p-4">EMP001</td>
                   <td className="p-4 flex justify-start">
@@ -143,21 +171,15 @@ export const Payroll = () => {
                       Employee
                     </p>
                   </td>
-                  <td className="p-4">
-                    IT
-                  </td>
-                  <td className="p-4">
-                    GH₵ 7,200
-                  </td>
+                  <td className="p-4">IT</td>
+                  <td className="p-4">GH₵ 7,200</td>
                   <td className="p-4 flex justify-center">
-                    <p
-                      className="py-1 px-4 rounded-full text-xs border font-medium bg-green-200 text-green-800 border-green-600"
-                    >
+                    <p className="py-1 px-4 rounded-full text-xs border font-medium bg-green-200 text-green-800 border-green-600">
                       Active
                     </p>
                   </td>
 
-                  <td className="p-4 text-end">
+                  <td className="p-4 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
@@ -165,8 +187,7 @@ export const Payroll = () => {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem
-                        >
+                        <DropdownMenuItem>
                           <Eye /> View Employee
                         </DropdownMenuItem>
                         <DropdownMenuItem>
@@ -179,8 +200,9 @@ export const Payroll = () => {
                     </DropdownMenu>
                   </td>
                 </tr>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <Pagination>
@@ -210,7 +232,6 @@ export const Payroll = () => {
       </section>
     </motion.main>
   );
-}
+};
 
 export default Payroll;
-  

@@ -131,131 +131,139 @@ export default function HR() {
       </section>
 
       {/* EMPLOYEE TABLE */}
-      <section className="bg-card border p-6 rounded-lg flex flex-col gap-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
-            Employees List
-          </h1>
-          <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
-            <Search size={16} color="#9ca3af" />
-            <input
-              type="text"
-              name="search-emp"
-              id="search-emp"
-              placeholder="Search by name, ID, or department..."
-              className="bg-muted text-muted-foreground text-sm outline-none w-full"
-            />
+      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between lg:min-h-[640px] bg-card">
+        <div className="flex flex-col gap-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
+              Employees List
+            </h1>
+            <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
+              <Search size={16} color="#9ca3af" />
+              <input
+                type="text"
+                name="search-emp"
+                id="search-emp"
+                placeholder="Search by name, ID, or department..."
+                className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
+              />
+            </div>
+            <Select>
+              <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="engineering">Engineering</SelectItem>
+                <SelectItem value="hr">HR</SelectItem>
+                <SelectItem value="marketing">Marketing</SelectItem>
+                <SelectItem value="operations">Operations</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                <SelectValue placeholder="Active" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on-leave">On Leave</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select>
-            <SelectTrigger className="pl-8 pr-4 w-[200px]">
-              <SelectValue placeholder="All Departments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              <SelectItem value="engineering">Engineering</SelectItem>
-              <SelectItem value="hr">HR</SelectItem>
-              <SelectItem value="marketing">Marketing</SelectItem>
-              <SelectItem value="operations">Operations</SelectItem>
-              <SelectItem value="sales">Sales</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger className="pl-8 pr-4 w-[200px]">
-              <SelectValue placeholder="Active" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="on-leave">On Leave</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="overflow-hidden rounded-3xl border">
-          <table className="min-w-full text-sm text-left">
-            <thead className="border-b bg-muted/50">
-              <tr>
-                <th className="p-4 font-medium">Name</th>
-                <th className="p-4 font-medium">ID</th>
-                <th className="p-4">Department</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Salary</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-end">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody className="bg-white divide-y divide-gray-200">
-              {employees.map((employee) => (
-                <tr key={employee.id} className="hover:bg-blue-50 border-b">
-                  <td className="p-4 font-semibold">{employee.name}</td>
-                  <td className="p-4">{employee.id}</td>
-                  <td className="p-4">{employee.department}</td>
-                  <td className="p-4 flex justify-start">
-                    <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
-                      {employee.employmentType}
-                    </p>
-                  </td>
-                  <td className="p-4">
-                    GH₵ {employee.salary.toLocaleString()}
-                  </td>
-                  <td className="p-4 flex justify-center">
-                    <p
-                      className={`py-1 px-4 rounded-full text-xs border font-medium ${
-                        employee.status === "Active"
-                          ? "bg-green-200 text-green-800 border-green-600"
-                          : employee.status === "Leave"
-                          ? "bg-blue-200 text-blue-800 border-blue-600"
-                          : "bg-red-200 text-red-800 border-red-600"
-                      }`}
-                    >
-                      {employee.status}
-                    </p>
-                  </td>
-
-                  <td className="p-4 text-end">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
-                          <EllipsisVertical />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => setViewEmployeeOpen(true)}
-                        >
-                          <Eye /> View Employee
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedEmployee(employee);
-                            setEditEmployeeOpen(true);
-                          }}
-                        >
-                          <SquarePen /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-500">
-                          <Trash2 /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
+          <div className="overflow-auto w-full">
+            <table className="w-full text-sm text-left">
+              <thead className="border-b">
+                <tr>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Name
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    ID
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Department
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Category
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Salary
+                  </th>
+                  <th className="h-12 px-4 text-center font-medium text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="h-12 px-4 text-center font-medium text-muted-foreground">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody className="border-0">
+                {employees.map((employee) => (
+                  <tr
+                    key={employee.id}
+                    className="border-b transition-colors hover:bg-muted/40"
+                  >
+                    <td className="p-4 font-semibold">{employee.name}</td>
+                    <td className="p-4">{employee.id}</td>
+                    <td className="p-4">{employee.department}</td>
+                    <td className="p-4">
+                      <p className="inline-block bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
+                        {employee.employmentType}
+                      </p>
+                    </td>
+                    <td className="p-4">
+                      GH₵ {employee.salary.toLocaleString()}
+                    </td>
+                    <td className="p-4 text-center">
+                      <p
+                        className={`inline-block py-1 px-4 rounded-full text-xs border font-medium ${
+                          employee.status === "Active"
+                            ? "bg-green-200 text-green-800 border-green-600"
+                            : employee.status === "Leave"
+                            ? "bg-blue-200 text-blue-800 border-blue-600"
+                            : "bg-red-200 text-red-800 border-red-600"
+                        }`}
+                      >
+                        {employee.status}
+                      </p>
+                    </td>
+
+                    <td className="p-4 text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
+                            <EllipsisVertical />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            onClick={() => setViewEmployeeOpen(true)}
+                          >
+                            <Eye /> View Employee
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedEmployee(employee);
+                              setEditEmployeeOpen(true);
+                            }}
+                          >
+                            <SquarePen /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-500">
+                            <Trash2 /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        {viewEmployeeOpen && (
-          <ViewEmployee onClose={() => setViewEmployeeOpen(false)} />
-        )}
-
-        {editEmployeeOpen && selectedEmployee && (
-          <EditEmployee
-            onClose={() => setEditEmployeeOpen(false)}
-            employee={selectedEmployee}
-          />
-        )}
 
         <Pagination>
           <PaginationContent>
