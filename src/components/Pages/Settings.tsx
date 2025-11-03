@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Building2, HandCoins, Save, UserCog } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Company } from "./settings/Company";
-import { Payroll } from "./settings/Payroll";
-import { Policy } from "./settings/Policy";
+import { CompanySettings } from "./settings/Company";
+import { PayrollSettings } from "./settings/Payroll";
+import { PolicySettings } from "./settings/Policy";
 
 export default function Settings() {
   return (
@@ -44,17 +44,17 @@ export default function Settings() {
           </TabsList>
           {/* Company */}
           <TabsContent value="company">
-            <Company />
+            <CompanySettings />
           </TabsContent>
 
           {/* Payroll */}
           <TabsContent value="payroll">
-            <Payroll />
+            <PayrollSettings />
           </TabsContent>
 
           {/* Policies */}
           <TabsContent value="policy">
-            <Policy />
+            <PolicySettings />
           </TabsContent>
         </Tabs>
         <button className="sm:hidden  bg-primary px-4 py-2 rounded-md text-primary-foreground flex justify-center items-center gap-2 text-sm">

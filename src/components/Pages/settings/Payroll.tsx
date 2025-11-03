@@ -1,4 +1,4 @@
-export const Payroll = () => {
+export const PayrollSettings = () => {
   return (
     <section className="flex flex-col gap-4">
       <section className="bg-card border rounded-lg p-6 flex flex-col gap-6 shadow-sm">

@@ -1,5 +1,10 @@
 // src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  BrowserRouter,
+} from "react-router-dom";
 
 // Pages
 import Dashboard from "./components/Pages/Dashboard";
@@ -22,7 +27,8 @@ import Access from "./assets/access_denied-removebg-preview.png";
 export const App = () => {
   return (
     <AuthProvider>
-      <Router>
+      <BrowserRouter>
+        {/* <Router> */}
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<SignIn />} />
@@ -66,7 +72,8 @@ export const App = () => {
             }
           />
         </Routes>
-      </Router>
+        {/* </Router> */}
+      </BrowserRouter>
     </AuthProvider>
   );
 };

@@ -1,327 +1,216 @@
-import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Download, EllipsisVertical, Eye, FileText, Search, SquarePen, Trash2 } from "lucide-react";
 
-export interface Employee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  department?: string;
-  baseSalary: number;
-  deductions: number;
-  notes?: string;
-}
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../ui/select";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
 
-const centsToCurrency = (cents: number) => {
-  const cedis = cents / 100;
-  return cedis.toLocaleString(undefined, {
-    style: "currency",
-    currency: "GHS",
-  });
-};
-
-const uid = (prefix = "emp") =>
-  `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
-
-async function fetchPayroll(): Promise<Employee[]> {
-  try {
-    await new Promise((r) => setTimeout(r, 300));
-    return [
-      {
-        id: uid("e"),
-        firstName: "Aisha",
-        lastName: "Mensah",
-        email: "aisha.mensah@example.com",
-        department: "Engineering",
-        baseSalary: 7200000,
-        deductions: 720000,
-      },
-      {
-        id: uid("e"),
-        firstName: "Kwame",
-        lastName: "Opoku",
-        email: "kwame.opoku@example.com",
-        department: "Sales",
-        baseSalary: 5400000,
-        deductions: 540000,
-      },
-      {
-        id: uid("e"),
-        firstName: "Sonia",
-        lastName: "Adjei",
-        email: "sonia.adjei@example.com",
-        department: "HR",
-        baseSalary: 4800000,
-        deductions: 240000,
-      },
-    ];
-  } catch (error) {
-    console.error("Failed to fetch payroll data:", error);
-    return [];
-  }
-}
-
-export default function PayrollPage() {
-  const [employees, setEmployees] = useState<Employee[] | null>(null);
-  const [query, setQuery] = useState("");
-  const [sortKey] = useState<"lastName" | "baseSalary" | "department">(
-    "lastName"
-  );
-  const [sortDir] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [, setEditing] = useState<Employee | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    fetchPayroll().then((data) => {
-      if (mounted) setEmployees(data);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const filtered = useMemo(() => {
-    if (!employees) return [];
-    const q = query.trim().toLowerCase();
-    let list = employees.filter((e) => {
-      if (!q) return true;
-      return (
-        `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
-        (e.email || "").toLowerCase().includes(q) ||
-        (e.department || "").toLowerCase().includes(q)
-      );
-    });
-
-    list = list.sort((a, b) => {
-      let val = 0;
-      if (sortKey === "lastName") {
-        val = a.lastName.localeCompare(b.lastName);
-      } else if (sortKey === "baseSalary") {
-        val = a.baseSalary - b.baseSalary;
-      } else if (sortKey === "department") {
-        val = (a.department || "").localeCompare(b.department || "");
-      }
-      return sortDir === "asc" ? val : -val;
-    });
-
-    return list;
-  }, [employees, query, sortKey, sortDir]);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  useEffect(() => {
-    if (page > pageCount) setPage(pageCount);
-  }, [pageCount, page]);
-
-  function openEdit(emp: Employee) {
-    setEditing({ ...emp });
-  }
-
-  function exportCSV(list: Employee[]) {
-    const headers = [
-      "ID",
-      "First Name",
-      "Last Name",
-      "Email",
-      "Department",
-      "Base Salary",
-      "Deductions",
-      "Net Pay",
-    ];
-    const rows = list.map((r) => [
-      r.id,
-      r.firstName,
-      r.lastName,
-      r.email,
-      r.department || "",
-      (r.baseSalary / 100).toFixed(2),
-      (r.deductions / 100).toFixed(2),
-      ((r.baseSalary - r.deductions) / 100).toFixed(2),
-    ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `payroll_report_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  const totalBasicSalary =
-    employees?.reduce((sum, e) => sum + e.baseSalary, 0) || 0;
-  const totalAllowances =
-    employees?.reduce((sum, e) => sum + e.baseSalary * 0.2, 0) || 0;
-  const totalDeductions =
-    employees?.reduce((sum, e) => sum + e.deductions, 0) || 0;
-  const netPayroll = totalBasicSalary + totalAllowances - totalDeductions;
-
+export const Payroll = () => {
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold">Payroll</h1>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => exportCSV(filtered)}
-              className="px-3 py-2 rounded-lg border hover:bg-gray-100"
-            >
-              Export Report
-            </button>
-            <button
-              onClick={() => {
-                const newEmp: Employee = {
-                  id: uid("new"),
-                  firstName: "New",
-                  lastName: "Employee",
-                  email: "new.employee@example.com",
-                  baseSalary: 3000000,
-                  deductions: 0,
-                };
-                setEmployees((prev) => (prev ? [newEmp, ...prev] : [newEmp]));
-              }}
-              className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            >
-              Generate Payslip
-            </button>
-          </div>
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="flex flex-col "
+    >
+      {/* Header */}
+      <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold text-gray-900">Payroll</h1>
+          <p className="text-gray-500">Manage payroll and generate payslips</p>
         </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white shadow rounded-lg p-4">
-            <h3 className="text-sm text-gray-500">Total Basic Salary</h3>
-            <p className="text-xl font-semibold text-green-600 mt-1">
-              {centsToCurrency(totalBasicSalary)}
-            </p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <h3 className="text-sm text-gray-500">Total Allowances</h3>
-            <p className="text-xl font-semibold text-blue-600 mt-1">
-              {centsToCurrency(totalAllowances)}
-            </p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <h3 className="text-sm text-gray-500">Total Deductions</h3>
-            <p className="text-xl font-semibold text-red-600 mt-1">
-              {centsToCurrency(totalDeductions)}
-            </p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-4">
-            <h3 className="text-sm text-gray-500">Net Payroll</h3>
-            <p className="text-xl font-semibold text-purple-600 mt-1">
-              {centsToCurrency(netPayroll)}
-            </p>
-          </div>
+        <div className="flex items-center gap-4 mt-4 sm:mt-0">
+          <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 transition duration-300 hover:text-white">
+            <Download className="w-4 h-4" />
+            <span>Export</span>
+          </button>
+          <button className="bg-primary px-4 py-2 rounded-md text-primary-foreground flex items-center gap-2 text-sm font-medium hover:bg-primary/90 transition duration-300">
+            <FileText className="w-4 h-4" />
+            <span>Generate Payslips</span>
+          </button>
         </div>
+      </section>
 
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          {
+            title: "Total Basic Salary",
+            value: "GH₵ 11,800",
+            desc: "This month",
+            color: "text-black",
+          },
+          {
+            title: "Total Allowances",
+            value: "GH₵ 1,400",
+            desc: "Additional payments",
+            color: "text-amber-500",
+          },
+          {
+            title: "Total Deductions",
+            value: "GH₵ 1,356",
+            desc: "Tax + SSNIT",
+            color: "text-red-500",
+          },
+          {
+            title: "Net Payroll",
+            value: "GH₵ 11,844",
+            desc: "Total payout",
+            color: "text-indigo-500",
+          },
+        ].map((item, i) => (
+          <div
+            key={i}
+            className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-md transition"
+          >
+            <h3 className="text-gray-600 font-medium mb-1">{item.title}</h3>
+            <p className={`text-3xl font-semibold ${item.color}`}>
+              {item.value}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      <section className="bg-card border p-6 rounded-lg flex flex-col gap-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
+            January 2025 Payroll
+          </h1>
+          <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
+            <Search size={16} color="#9ca3af" />
             <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, email, or department"
-              className="flex-1 border rounded p-2"
+              type="text"
+              name="search-emp"
+              id="search-emp"
+              placeholder="Search by name, ID, or department..."
+              className="bg-muted text-muted-foreground text-sm outline-none w-full"
             />
           </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto text-sm">
-              <thead>
-                <tr className="text-left">
-                  <th className="p-2">#</th>
-                  <th className="p-2">Name</th>
-                  <th className="p-2">Email</th>
-                  <th className="p-2">Department</th>
-                  <th className="p-2">Base Salary</th>
-                  <th className="p-2">Deductions</th>
-                  {/* ssnit, tax, loan */}
-                  <th className="p-2">Net Pay</th>
-                  <th className="p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employees === null ? (
-                  <tr>
-                    <td colSpan={8} className="p-4 text-center">
-                      Loading...
-                    </td>
-                  </tr>
-                ) : pageItems.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="p-4 text-center">
-                      No employees found
-                    </td>
-                  </tr>
-                ) : (
-                  pageItems.map((e, i) => {
-                    const idx = (page - 1) * pageSize + i + 1;
-                    return (
-                      <tr key={e.id} className="border-t">
-                        <td className="p-2 align-top">{idx}</td>
-                        <td className="p-2 align-top">
-                          {e.firstName} {e.lastName}
-                        </td>
-                        <td className="p-2 align-top">{e.email}</td>
-                        <td className="p-2 align-top">{e.department || "—"}</td>
-                        <td className="p-2 align-top">
-                          {centsToCurrency(e.baseSalary)}
-                        </td>
-                        <td className="p-2 align-top">
-                          {centsToCurrency(e.deductions)}
-                        </td>
-                        <td className="p-2 align-top">
-                          {centsToCurrency(e.baseSalary - e.deductions)}
-                        </td>
-                        <td className="p-2 align-top">
-                          <button
-                            onClick={() => openEdit(e)}
-                            className="px-2 py-1 border rounded"
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-gray-600">
-              Showing {pageItems.length} of {filtered.length} employees
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-2 py-1 border rounded disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <div className="px-2">
-                Page {page} / {pageCount}
-              </div>
-              <button
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                disabled={page === pageCount}
-                className="px-2 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+          <Select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="employees">Employees</SelectItem>
+              <SelectItem value="nss">NSS Personnel</SelectItem>
+              <SelectItem value="interns">Interns</SelectItem>
+              <SelectItem value="others">Others</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="py-1 px-2 border border-gray-300 rounded-lg">
+            <input type="month" name="month" id="month" />
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="overflow-hidden rounded-3xl border">
+          <table className="min-w-full text-sm text-left">
+            <thead className="border-b bg-muted/50">
+              <tr>
+                <th className="p-4 font-medium">Name</th>
+                <th className="p-4 font-medium">ID</th>
+                <th className="p-4">Category</th>
+                <th className="p-4">Department</th>
+                <th className="p-4">Salary</th>
+                <th className="p-4 text-center">Status</th>
+                <th className="p-4 text-end">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody className="bg-white divide-y divide-gray-200">
+                <tr className="hover:bg-blue-50 border-b">
+                  <td className="p-4 font-semibold">Kwame Mensah</td>
+                  <td className="p-4">EMP001</td>
+                  <td className="p-4 flex justify-start">
+                    <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
+                      Employee
+                    </p>
+                  </td>
+                  <td className="p-4">
+                    IT
+                  </td>
+                  <td className="p-4">
+                    GH₵ 7,200
+                  </td>
+                  <td className="p-4 flex justify-center">
+                    <p
+                      className="py-1 px-4 rounded-full text-xs border font-medium bg-green-200 text-green-800 border-green-600"
+                    >
+                      Active
+                    </p>
+                  </td>
+
+                  <td className="p-4 text-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
+                          <EllipsisVertical />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem
+                        >
+                          <Eye /> View Employee
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <SquarePen /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-500">
+                          <Trash2 /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious href="#" />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#">1</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#" isActive>
+                2
+              </PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLink href="#">3</PaginationLink>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext href="#" />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </section>
+    </motion.main>
   );
 }
+
+export default Payroll;
+  

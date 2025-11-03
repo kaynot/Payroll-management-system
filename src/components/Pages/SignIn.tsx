@@ -12,6 +12,8 @@ import {
   CardContent,
 } from "../ui/card";
 import { Input } from "../ui/input";
+import { PostDataFunc } from "../hooks/postFunc";
+import { useCrudFunc } from "../hooks/crud";
 
 export const SignIn = () => {
   const { login } = useAuth();
@@ -19,23 +21,25 @@ export const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [posting, updating] = useCrudFunc();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email || !password) {
-      alert("Please enter both email and password.");
-      return;
-    }
-
-    setIsLoading(true);
+  const handleLogin = async (e: any) => {
+    e.preventDefault(); // 👈 prevents the page reload
     try {
-      // 🔐 Simulated authentication (replace later with API call)
-      await new Promise((resolve) => setTimeout(resolve, 500)); // simulate network delay
-      login({ id: 1, userName: "Demo User", email });
-      navigate("/");
-    } finally {
-      setIsLoading(false);
+      const response = await posting("Auth/Login", {
+        userNameOrEmail: email,
+        password: password,
+      });
+
+      const status = response?.data?.statusCode;
+      if (status === 200) {
+        const userData = response?.data?.data?.user;
+        login(userData);
+        navigate("/");
+      }
+      console.log("response", response);
+    } catch (e: any) {
+      console.log("error", e);
     }
   };
 
@@ -86,11 +90,11 @@ export const SignIn = () => {
                 </label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="user@example.com"
+                  // type="email"
+                  placeholder="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
+                  // required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
               </div>

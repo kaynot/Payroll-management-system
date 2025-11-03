@@ -1,4 +1,4 @@
-export const Company = () => {
+export const CompanySettings = () => {
   return (
     <section className="bg-card border rounded-lg p-6 flex flex-col gap-6">
       <h3 className="text-2xl font-semibold">Company Information</h3>
