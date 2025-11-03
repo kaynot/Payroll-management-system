@@ -7,7 +7,7 @@ import SignIn from "./components/Pages/SignIn";
 import HR from "./components/Pages/HR";
 import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
-import { Attendance } from "./components/Pages/Attendance";
+import Attendance from "./components/Pages/Attendance";
 import Payroll from "./components/Pages/Payroll";
 import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
 
