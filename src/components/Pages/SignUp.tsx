@@ -13,6 +13,7 @@ import { Input } from "../ui/input";
 import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
+import { toast } from "sonner";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function SignUp() {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
@@ -53,15 +54,34 @@ export default function SignUp() {
         surName: form.surName,
       });
 
+      const message = response?.data?.message || "";
+
+      // Registration successful
       if (response?.status === 200 || response?.status === 201) {
-        alert("Account created successfully!");
-        navigate("/login");
+        toast.success("🎉 Account created successfully!");
+        setTimeout(() => navigate("/login"), 1500);
+      }
+      // Backend returned a known message (e.g., email or username conflict)
+      else if (message.includes("email")) {
+        toast.error("Email already exists! Try a different one.");
+      } else if (message.includes("username") || message.includes("userName")) {
+        toast.error("Username already exists! Choose a different one.");
+      } else {
+        toast.error(message || "Registration failed. Please try again.");
       }
     } catch (error: any) {
+      // Server returned conflict (409)
       if (error.response?.status === 409) {
-        alert("Username or email already exists!");
+        const errMsg = error.response?.data?.message?.toLowerCase() || "";
+        if (errMsg.includes("email")) {
+          toast.error("Email is already registered.");
+        } else if (errMsg.includes("username") || errMsg.includes("user")) {
+          toast.error("Username is already taken.");
+        } else {
+          toast.error("Account already exists.");
+        }
       } else {
-        alert("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again later.");
       }
       console.error("Registration error:", error);
     } finally {

@@ -27,26 +27,45 @@ export default function SignIn() {
   const handleLogin = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
       const response = await posting("Auth/Login", {
-        userNameOrEmail: email,
-        password,
+        userNameOrEmail: email.trim(),
+        password: password.trim(),
       });
 
       const status = response?.data?.statusCode;
+      const message = response?.data?.message?.toLowerCase() || "";
+
+      // Success
       if (status === 200) {
         const userData = response?.data?.data?.user;
         login(userData);
 
-        // Success toast
-        toast.success("Login successful!");
-        navigate("/");
+        toast.success("Login successful! Redirecting...", {
+          description: `Welcome back, ${userData?.firstName || "User"} 👋`,
+          duration: 3000,
+        });
+
+        setTimeout(() => navigate("/"), 1500);
+      }
+      // Wrong credentials or not found
+      else if (message.includes("invalid") || message.includes("incorrect")) {
+        toast.error("Invalid username or password!");
+      } else if (message.includes("not found")) {
+        toast.error("User not found! Please register first.");
       } else {
         toast.error(response?.data?.message || "Login failed. Try again.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Something went wrong. Please try again.");
+      const errMsg = error.response?.data?.message?.toLowerCase() || "";
+
+      if (errMsg.includes("invalid credentials")) {
+        toast.error("Invalid username or password.");
+      } else {
+        toast.error("Something went wrong. Please try again later.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -101,6 +120,27 @@ export default function SignIn() {
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
             </div>
+          </div>
+
+          <div className="flex justify-between items-center text-sm">
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              className="text-primary hover:underline transition-colors"
+            >
+              Forgot password?
+            </button>
+
+            <p className="text-muted-foreground">
+              Don’t have an account?{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/signup")}
+                className="text-primary font-semibold hover:underline transition-colors"
+              >
+                Sign Up
+              </button>
+            </p>
           </div>
 
           <Button

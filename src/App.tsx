@@ -36,7 +36,6 @@ export const App = () => {
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/employee-checkin" element={<EmployeeCheckin />} />{" "}
-          {/* ✅ new public page */}
           {/* Protected Dashboard */}
           <Route
             path="/"
@@ -79,7 +78,14 @@ export const App = () => {
         {/* Global Toaster for Sonner */}
         <Toaster
           // richColors
-          position="bottom-right"
+          position="top-right"
+          toastOptions={{
+            style: { borderRadius: "8px", fontFamily: "Inter" },
+            classNames: {
+              success: "bg-green-50 border-green-400 text-green-800",
+              error: "bg-red-50 border-red-400 text-red-800",
+            },
+          }}
         />
       </BrowserRouter>
     </AuthProvider>
