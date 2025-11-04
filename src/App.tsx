@@ -23,6 +23,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Assets
 import Access from "./assets/access_denied-removebg-preview.png";
+import SignUp from "./components/Pages/SignUp";
 
 export const App = () => {
   return (
@@ -32,6 +33,7 @@ export const App = () => {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/employee-checkin" element={<EmployeeCheckin />} />{" "}
           {/* ✅ new public page */}
           {/* Protected Dashboard */}

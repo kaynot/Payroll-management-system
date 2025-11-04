@@ -27,7 +27,7 @@ export const useCrudFunc = () => {
     cusHeader?: any
   ) => {
     const response = await axios.put(
-      `https://localhost:7002/api//${url}`,
+      `https://localhost:7002/api/${url}`,
       {
         ...payload,
       },
@@ -53,7 +53,7 @@ export const useCrudFunc = () => {
   };
   const fetchData = async (url: string) => {
     const response = await axios.get(
-      `https://localhost:7002/api//${url}`,
+      `https://localhost:7002/api/${url}`,
       requestConfig()
     );
     return response;
