@@ -1,24 +1,62 @@
 import { BadgeCent, TrendingUp, UserCheck, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import StackedBarChart from "./charts/barchart";
+import DepartmentDonutChart from "./charts/piechart";
+import { motion } from "framer-motion";
 
-function Dashboard() {
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+
+import { Input } from "../ui/input";
+import { Checkbox } from "../ui/checkbox";
+import { useState } from "react";
+
+export const Dashboard = () => {
+  const [count, setCount] = useState(0);
+
+  const increment = () => {
+    setCount(count + 1);
+  };
+
   return (
-    <main className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-bold text-3xl">Dashboard Overview</h1>
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="flex flex-col gap-8"
+    >
+      <section className="flex flex-col gap-2">
+        <h1 className="font-bold text-3xl">Welcome back, Akosua!</h1>
         <p className="text-[#65758b]">
-          Welcome back! Here's what's happening with your workforce today
+          Here’s a quick snapshot of today’s payroll activities and workforce
+          insights
         </p>
-      </div>
-      <div className="flex flex-col w-full gap-8">
-        <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 justify-between w-full gap-6 sm:gap-4 md:gap-6 lg:gap-6 min-w-52 sm:min-w-52 md:min-w-64 lg:min-w-80">
+      </section>
+
+      {/* Analytics */}
+      <section className="flex flex-col w-full gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 justify-between w-full gap-4 sm:gap-4 md:gap-6 lg:gap-6">
           <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between">
               <h1 className="text-[#65758b]">Total Employees</h1>
               <div className="bg-primary/10 p-2 rounded-lg">
-                <Users size={16} color="#4f46e5" />
+                <Users size={32} color="#4f46e5" />
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <h1 className="font-bold text-3xl">248</h1>
               <div className="flex justify-start items-center gap-1">
                 <TrendingUp size={12} color="#10b77f" />
@@ -29,13 +67,13 @@ function Dashboard() {
             </div>
           </div>
           <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between">
               <h1 className="text-[#65758b]">Attendance Rate</h1>
               <div className="bg-[#10b77f1a] p-2 rounded-lg">
-                <UserCheck size={16} color="#10b77f" />
+                <UserCheck size={32} color="#10b77f" />
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <h1 className="font-bold text-3xl">94.2%</h1>
               <div className="flex justify-start items-center gap-1">
                 <TrendingUp size={12} color="#10b77f" />
@@ -46,13 +84,13 @@ function Dashboard() {
             </div>
           </div>
           <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between">
               <h1 className="text-[#65758b]">Total Payroll</h1>
               <div className="bg-[#1f51c71a] p-2 rounded-lg">
-                <BadgeCent size={16} color="#1f51c7" />
+                <BadgeCent size={32} color="#1f51c7" />
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <h1 className="font-bold text-3xl">GH₵ 485K</h1>
               <div className="flex justify-start items-center gap-1">
                 <TrendingUp size={12} color="#10b77f" />
@@ -63,13 +101,13 @@ function Dashboard() {
             </div>
           </div>
           <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between">
               <h1 className="text-[#65758b]">Growth Rate</h1>
               <div className="bg-[#f5d88a5a] p-2 rounded-lg">
-                <TrendingUp size={16} color="#d1a11f" strokeWidth={3} />
+                <TrendingUp size={32} color="#d1a11f" strokeWidth={3} />
               </div>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <h1 className="font-bold text-3xl">15.3%</h1>
               <div className="flex justify-start items-center gap-1">
                 <TrendingUp size={12} color="#10b77f" />
@@ -80,67 +118,68 @@ function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card">
-          <h1 className="font-semibold text-2xl">Recent Activity</h1>
-
-          <div className="flex flex-col justify-start gap-4">
-            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <h1 className="font-medium">John Mensah</h1>
-                <h3 className="text-sm">8:45 AM</h3>
-              </div>
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-[#65758b]">Check In</p>
-                <p className="text-sm bg-[#10b77f1a] text-[#10b77f] px-2 py-1 rounded-full">
-                  success
-                </p>
-              </div>
+      {/* charts: Payroll trends, Department Distribution  */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-4 md:gap-6 lg:gap-6 w-full">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-[full]">
+          <div className="flex justify-between items-center w-full">
+            <div className="flex flex-col text-sm gap-2">
+              <h3 className="font-medium text-lg">Payroll Trends</h3>
+              <p className=" text-[#65758b]">Monthly payroll expenses</p>
             </div>
-            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <h1 className="font-medium">John Mensah</h1>
-                <h3 className="text-sm">8:45 AM</h3>
-              </div>
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-[#65758b]">Payslip Generated</p>
-                <p className="text-sm bg-secondary/10 text-secondary px-2 py-1 rounded-full">
-                  info
-                </p>
-              </div>
+            <div>
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1-month">1-month</SelectItem>
+                  <SelectItem value="3-months">3-months</SelectItem>
+                  <SelectItem value="6-months">6-months</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <h1 className="font-medium">John Mensah</h1>
-                <h3 className="text-sm">8:45 AM</h3>
-              </div>
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-[#65758b]">Leave Request</p>
-                <p className="text-sm bg-[#f29d0e22] text-[#f29d0e] px-2 py-1 rounded-full">
-                  warning
-                </p>
-              </div>
-            </div>
-            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <h1 className="font-medium">John Mensah</h1>
-                <h3 className="text-sm">8:45 AM</h3>
-              </div>
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-[#65758b]">Check Out</p>
-                <p className="text-sm bg-[#10b77f1a] text-[#10b77f] px-2 py-1 rounded-full">
-                  success
-                </p>
-              </div>
-            </div>
+          </div>
+          <div className="w-full mt-4">
+            <StackedBarChart />
           </div>
         </div>
 
-        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card">
-          <h1 className="font-semibold text-2xl">Department Attendance</h1>
-          <div className="flex flex-col gap-4">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-full">
+          <div className="flex justify-between items-center w-full">
+            <div className="flex flex-col text-sm gap-2">
+              <h3 className="font-medium text-lg">Department Distribution</h3>
+              <p className=" text-[#65758b]">Salary breakdown by department</p>
+            </div>
+            <div>
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1-month">All Depts</SelectItem>
+                  <SelectItem value="3-months">Engineering</SelectItem>
+                  <SelectItem value="6-months">HR</SelectItem>
+                  <SelectItem value="1-month">Marketing</SelectItem>
+                  <SelectItem value="3-months">Operations</SelectItem>
+                  <SelectItem value="6-months">Sales</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="mt-4">
+            <DepartmentDonutChart />
+          </div>
+        </div>
+      </section>
+
+      {/* recent activity, department attendance, pending actions */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-1 gap-6">
+        {/* department attendance  */}
+        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
+          <h1 className="font-medium text-lg">Department Attendance</h1>
+          <div className="flex flex-col gap-4 h-full overflow-auto overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-2 text-sm font-medium">
                 <div className="flex justify-between items-center">
@@ -220,9 +259,215 @@ function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
-    </main>
+
+        {/* pending actions */}
+        <div className="border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50/50 rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
+          <div className="flex justify-between">
+            <h1 className="font-medium text-lg">Pending Actions</h1>
+            <p className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
+              {count} pending
+            </p>
+          </div>
+
+          <div className="flex flex-col justify-between h-full">
+            <div className="flex flex-col gap-1 max-h-[280px] overflow-auto overflow-y-scroll h-64 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-1" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-1">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-[#f29d0e22] text-[#f29d0e] px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-2" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-2">Review tax deductions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-secondary/10 text-secondary px-2 rounded-full">
+                      medium
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-3" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-3">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-4" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-4">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-5" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-5">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-3 hover:bg-card/50 p-4 rounded-lg">
+                <Checkbox id="terms-6" />
+                <div className="grid gap-2">
+                  <label htmlFor="terms-6">Accept terms and conditions</label>
+                  <div className="flex text-muted-foreground text-sm justify-start items-center gap-4">
+                    <p className="text-sm bg-muted-foreground/10 text-muted-foreground px-2 rounded-full">
+                      high
+                    </p>
+                    <p>Due: Oct 28</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* <button> */}
+            <Dialog>
+              <DialogTrigger className="bg-primary font-semibold text-white py-2 w-full rounded-full hover:bg-primary/95">
+                Add new reminder
+              </DialogTrigger>
+              <DialogContent className="space-y-2">
+                <DialogHeader className="flex space-y-2">
+                  <DialogTitle>Add New Reminder</DialogTitle>
+                  <DialogDescription>
+                    Add a new reminder to your dashboard
+                  </DialogDescription>
+                </DialogHeader>
+                <form action="#" method="post" className="flex flex-col gap-8">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="title">Title</label>
+                      <Input
+                        type="text"
+                        name="title"
+                        id="title"
+                        placeholder="Reminder Title"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="description">Description</label>
+                      <textarea
+                        name="description"
+                        id="description"
+                        className="rounded-lg border min-h-24 outline-primary px-3 py-2 text-base  bg-background resize-none placeholder:text-muted-foreground focus:bg-primary-foreground"
+                        placeholder="Reminder Description"
+                      ></textarea>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="priority">Priority</label>
+                      <Select>
+                        <SelectTrigger className="w-full rounded-lg">
+                          <SelectValue placeholder="select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">low</SelectItem>
+                          <SelectItem value="medium">medium</SelectItem>
+                          <SelectItem value="high">high</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="date">Due Date</label>
+                      <input
+                        type="date"
+                        name="date"
+                        id="date"
+                        className="outline-primary rounded-lg text-muted-foreground bg-background border px-3 py-1 w-full h-9 bg-"
+                      />
+                    </div>
+                  </div>
+                  <button className="bg-primary font-semibold text-white py-2 w-full rounded-full hover:bg-primary/95">
+                    Add reminder
+                  </button>
+                </form>
+              </DialogContent>
+            </Dialog>
+            {/* </button> */}
+          </div>
+        </div>
+
+        {/* recent activity */}
+        <div className="border-[1px] rounded-lg p-6 flex flex-col gap-6 hover:shadow-lg transition duration-300 bg-card h-[448px] w-full">
+          <h1 className="font-medium text-lg">Recent Activity</h1>
+
+          <div className="flex flex-col justify-start gap-4 overflow-auto overflow-y-scroll h-full scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 scrollbar-none">
+            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
+              <div className="flex justify-between items-center">
+                <h1 className="font-medium">John Mensah</h1>
+                <h3 className="text-sm">8:45 AM</h3>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-[#65758b]">Check In</p>
+                <p className="text-sm bg-[#10b77f1a] text-[#10b77f] px-2 py-1 rounded-full">
+                  success
+                </p>
+              </div>
+            </div>
+            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
+              <div className="flex justify-between items-center">
+                <h1 className="font-medium">John Mensah</h1>
+                <h3 className="text-sm">8:45 AM</h3>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-[#65758b]">Payslip Generated</p>
+                <p className="text-sm bg-secondary/10 text-secondary px-2 py-1 rounded-full">
+                  info
+                </p>
+              </div>
+            </div>
+            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
+              <div className="flex justify-between items-center">
+                <h1 className="font-medium">John Mensah</h1>
+                <h3 className="text-sm">8:45 AM</h3>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-[#65758b]">Leave Request</p>
+                <p className="text-sm bg-[#f29d0e22] text-[#f29d0e] px-2 py-1 rounded-full">
+                  warning
+                </p>
+              </div>
+            </div>
+            <div className="bg-[#f1f5f980] rounded-lg px-4 py-2 flex flex-col gap-1">
+              <div className="flex justify-between items-center">
+                <h1 className="font-medium">John Mensah</h1>
+                <h3 className="text-sm">8:45 AM</h3>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-[#65758b]">Check Out</p>
+                <p className="text-sm bg-[#10b77f1a] text-[#10b77f] px-2 py-1 rounded-full">
+                  success
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </motion.main>
   );
-}
+};
 
 export default Dashboard;

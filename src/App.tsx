@@ -1,38 +1,81 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.css";
+// src/App.tsx
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  BrowserRouter,
+} from "react-router-dom";
 
-// Pages and layouts
-import DashboardLayout from "./components/template/Sidenav";
+// Pages
 import Dashboard from "./components/Pages/Dashboard";
 import SignIn from "./components/Pages/SignIn";
 import HR from "./components/Pages/HR";
-// import Payroll from "./components/Pages/Payroll";
-// import Attendance from "./components/Pages/Attendance";
 import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
-import { Attendance } from "./components/Pages/Attendance";
-import { Payroll } from "./components/Pages/Payroll";
+import Attendance from "./components/Pages/Attendance";
+import Payroll from "./components/Pages/Payroll";
+import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
+
+// Layout & Auth
+import DashboardLayout from "./components/template/sidenav";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Assets
+import Access from "./assets/access_denied-removebg-preview.png";
+import SignUp from "./components/Pages/SignUp";
 
 export const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Public route */}
-        <Route path="/login" element={<SignIn />} />
-
-        {/* Protected dashboard layout with nested routes */}
-        <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="hr" element={<HR />} />
-          <Route path="attendance" element={<Attendance />} />
-          <Route path="payroll" element={<Payroll />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-
-        {/* Optional 404 route */}
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <BrowserRouter>
+        {/* <Router> */}
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/employee-checkin" element={<EmployeeCheckin />} />{" "}
+          {/* ✅ new public page */}
+          {/* Protected Dashboard */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="hr" element={<HR />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="payroll" element={<Payroll />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+          {/* 404 / Access denied */}
+          <Route
+            path="*"
+            element={
+              <main className="flex flex-col justify-center items-center gap-4 h-screen text-center">
+                <img
+                  src={Access}
+                  alt="access denied"
+                  className="w-auto max-w-sm"
+                />
+                <h1 className="text-5xl font-bold">Access Denied!</h1>
+                <p className="text-muted-foreground">
+                  Kindly{" "}
+                  <a href="/login" className="text-primary underline">
+                    login
+                  </a>{" "}
+                  to access the dashboard.
+                </p>
+              </main>
+            }
+          />
+        </Routes>
+        {/* </Router> */}
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
