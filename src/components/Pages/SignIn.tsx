@@ -14,6 +14,7 @@ import { Input } from "../ui/input";
 import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
+import { toast } from "sonner";
 
 export default function SignIn() {
   const { login } = useAuth();
@@ -36,13 +37,16 @@ export default function SignIn() {
       if (status === 200) {
         const userData = response?.data?.data?.user;
         login(userData);
+
+        // Success toast
+        toast.success("Login successful!");
         navigate("/");
       } else {
-        alert(response?.data?.message || "Login failed. Try again.");
+        toast.error(response?.data?.message || "Login failed. Try again.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

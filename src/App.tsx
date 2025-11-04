@@ -6,6 +6,8 @@ import {
   BrowserRouter,
 } from "react-router-dom";
 
+import { Toaster } from "sonner";
+
 // Pages
 import Dashboard from "./components/Pages/Dashboard";
 import SignIn from "./components/Pages/SignIn";
@@ -29,7 +31,6 @@ export const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* <Router> */}
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<SignIn />} />
@@ -74,7 +75,12 @@ export const App = () => {
             }
           />
         </Routes>
-        {/* </Router> */}
+
+        {/* Global Toaster for Sonner */}
+        <Toaster
+          // richColors
+          position="bottom-right"
+        />
       </BrowserRouter>
     </AuthProvider>
   );

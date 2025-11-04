@@ -38,10 +38,10 @@ export default function SignUp() {
   const handleRegister = async (e: any) => {
     e.preventDefault();
 
-    // if (form.password !== form.confirmPassword) {
-    //   alert("Passwords do not match.");
-    //   return;
-    // }
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -53,16 +53,17 @@ export default function SignUp() {
         surName: form.surName,
       });
 
-      const status = response?.data?.statusCode;
-      if (status === 200 || status === 201) {
+      if (response?.status === 200 || response?.status === 201) {
         alert("Account created successfully!");
-        navigate("/signin");
-      } else {
-        alert(response?.data?.message || "Registration failed. Try again.");
+        navigate("/login");
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        alert("Username or email already exists!");
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
       console.error("Registration error:", error);
-      alert("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +71,7 @@ export default function SignUp() {
 
   return (
     <AuthLayout>
-      <CardHeader className="space-y-6 text-center pb-8 pt-10">
+      <CardHeader className="space-y-6 text-center pb-8 pt-10 ">
         <AuthLogo />
         <div className="space-y-2">
           <CardTitle className="text-4xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -181,7 +182,7 @@ export default function SignUp() {
                 />
               </div>
 
-              {/* <div className="space-y-2">
+              <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
                   className="text-sm font-semibold"
@@ -195,12 +196,12 @@ export default function SignUp() {
                   placeholder="*****"
                   value={form.confirmPassword}
                   onChange={(e: any) => {
-                    updateState("confirm-pass", e.target.value);
+                    updateState("confirmPassword", e.target.value);
                   }}
                   required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
-              </div> */}
+              </div>
             </div>
           </div>
 
