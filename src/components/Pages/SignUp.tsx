@@ -18,6 +18,7 @@ import { toast } from "sonner";
 export default function SignUp() {
   const navigate = useNavigate();
   const [posting] = useCrudFunc();
+  const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
     userName: "",
     email: "",
@@ -26,7 +27,6 @@ export default function SignUp() {
     firstName: "",
     surName: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const updateState = (key: string, value: any) => {
     setForm((prev: any) => ({

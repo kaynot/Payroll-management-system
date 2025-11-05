@@ -1,4 +1,3 @@
-// src/components/Pages/SignIn.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -19,10 +18,20 @@ import { toast } from "sonner";
 export default function SignIn() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [posting] = useCrudFunc();
+  const [isLoading, setIsLoading] = useState(false);
+  const [form, setForm] = useState({
+    emailOrUsername: "",
+    password: "",
+  });
+
+  const updateState = (key: string, value: any) => {
+    setForm((prev: any) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+  console.log("Form:", form);
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
@@ -30,14 +39,13 @@ export default function SignIn() {
 
     try {
       const response = await posting("Auth/Login", {
-        userNameOrEmail: email.trim(),
-        password: password.trim(),
+        userNameOrEmail: form.emailOrUsername.trim(),
+        password: form.password.trim(),
       });
 
       const status = response?.data?.statusCode;
       const message = response?.data?.message?.toLowerCase() || "";
 
-      // Success
       if (status === 200) {
         const userData = response?.data?.data?.user;
         login(userData);
@@ -48,9 +56,7 @@ export default function SignIn() {
         });
 
         setTimeout(() => navigate("/"), 1500);
-      }
-      // Wrong credentials or not found
-      else if (message.includes("invalid") || message.includes("incorrect")) {
+      } else if (message.includes("invalid") || message.includes("incorrect")) {
         toast.error("Invalid username or password!");
       } else if (message.includes("not found")) {
         toast.error("User not found! Please register first.");
@@ -92,15 +98,20 @@ export default function SignIn() {
         <form onSubmit={handleLogin} className="space-y-8">
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-semibold">
+              <label
+                htmlFor="emailOrUsername"
+                className="text-sm font-semibold"
+              >
                 Username or Email
               </label>
               <Input
-                id="email"
+                id="emailOrUsername"
                 type="text"
                 placeholder="Enter your username or email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={form.emailOrUsername}
+                onChange={(e: any) =>
+                  updateState("emailOrUsername", e.target.value)
+                }
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
@@ -114,33 +125,22 @@ export default function SignIn() {
                 id="password"
                 type="password"
                 placeholder="*****"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={form.password}
+                onChange={(e: any) => updateState("password", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
             </div>
-          </div>
 
-          <div className="flex justify-between items-center text-sm">
-            <button
-              type="button"
-              onClick={() => navigate("/forgot-password")}
-              className="text-primary hover:underline transition-colors"
-            >
-              Forgot password?
-            </button>
-
-            <p className="text-muted-foreground">
-              Don’t have an account?{" "}
+            <div className="text-right">
               <button
                 type="button"
-                onClick={() => navigate("/signup")}
-                className="text-primary font-semibold hover:underline transition-colors"
+                onClick={() => navigate("#")}
+                className="text-sm text-primary font-medium hover:underline"
               >
-                Sign Up
+                Forgot password?
               </button>
-            </p>
+            </div>
           </div>
 
           <Button
@@ -152,13 +152,21 @@ export default function SignIn() {
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t text-center">
-          <p className="text-sm text-muted-foreground">
-            Powered by{" "}
-            <span className="font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Innorik Ltd.
-            </span>
-          </p>
+        <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
+          Don’t have an account yet?{" "}
+          <button
+            onClick={() => navigate("/signup")}
+            className="text-primary font-semibold hover:underline"
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          Powered by{" "}
+          <span className="font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Innorik Ltd.
+          </span>
         </div>
       </CardContent>
     </AuthLayout>
