@@ -10,7 +10,7 @@ export const useCrudFunc = () => {
     cusHeader?: any
   ) => {
     const response = await axios.post(
-      `https://localhost:7002/api/${url}`,
+      `http://localhost:7002/api/${url}`,
       {
         ...payload,
       },
@@ -27,7 +27,7 @@ export const useCrudFunc = () => {
     cusHeader?: any
   ) => {
     const response = await axios.put(
-      `https://localhost:7002/api/${url}`,
+      `http://localhost:7002/api/${url}`,
       {
         ...payload,
       },
@@ -37,7 +37,7 @@ export const useCrudFunc = () => {
   };
 
   const deleteData = async (url: string, payload: any, FormAction?: string) => {
-    const response = await axios.delete(`https://localhost:7002/api/${url}`, {
+    const response = await axios.delete(`http://localhost:7002/api/${url}`, {
       ...payload,
     });
     return response;
@@ -45,7 +45,7 @@ export const useCrudFunc = () => {
 
   const patchData = async (url: string, payload: any, FormAction?: string) => {
     const response = await axios.patch(
-      `https://localhost:7002/api/${url}`,
+      `http://localhost:7002/api/${url}`,
       { ...payload },
       requestConfig()
     );
@@ -53,7 +53,7 @@ export const useCrudFunc = () => {
   };
   const fetchData = async (url: string) => {
     const response = await axios.get(
-      `https://localhost:7002/api/${url}`,
+      `http://localhost:7002/api/${url}`,
       requestConfig()
     );
     return response;
