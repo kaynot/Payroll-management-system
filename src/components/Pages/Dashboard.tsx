@@ -22,13 +22,17 @@ import {
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export const Dashboard = () => {
-  const [count, setCount] = useState(0);
+  const { user } = useAuth(); // get logged-in user from context
+  const displayName = user?.userName || "User";
 
-  const increment = () => {
-    setCount(count + 1);
-  };
+  // const [count, setCount] = useState(0);
+
+  // const increment = () => {
+  //   setCount(count + 1);
+  // };
 
   return (
     <motion.main
@@ -39,84 +43,65 @@ export const Dashboard = () => {
       className="flex flex-col gap-8"
     >
       <section className="flex flex-col gap-2">
-        <h1 className="font-bold text-3xl">Welcome back, Akosua!</h1>
+        <h1 className="font-bold text-3xl">Welcome back, {displayName}!</h1>
         <p className="text-[#65758b]">
           Here’s a quick snapshot of today’s payroll activities and workforce
           insights
         </p>
       </section>
 
-      {/* Analytics */}
+      {/* Analytics Section */}
       <section className="flex flex-col w-full gap-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 justify-between w-full gap-4 sm:gap-4 md:gap-6 lg:gap-6">
-          <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between">
-              <h1 className="text-[#65758b]">Total Employees</h1>
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Users size={32} color="#4f46e5" />
+          {[
+            {
+              title: "Total Employees",
+              value: "248",
+              icon: <Users size={32} color="#4f46e5" />,
+              color: "bg-primary/10",
+              growth: "+12.5% from last month",
+            },
+            {
+              title: "Attendance Rate",
+              value: "94.2%",
+              icon: <UserCheck size={32} color="#10b77f" />,
+              color: "bg-[#10b77f1a]",
+              growth: "+2.3% from last month",
+            },
+            {
+              title: "Total Payroll",
+              value: "GH₵ 485K",
+              icon: <BadgeCent size={32} color="#1f51c7" />,
+              color: "bg-[#1f51c71a]",
+              growth: "+8.1% from last month",
+            },
+            {
+              title: "Growth Rate",
+              value: "15.3%",
+              icon: <TrendingUp size={32} color="#d1a11f" strokeWidth={3} />,
+              color: "bg-[#f5d88a5a]",
+              growth: "+3.2% from last month",
+            },
+          ].map((card, i) => (
+            <div
+              key={i}
+              className="border rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg hover:border-primary/40 hover:shadow-primary/10 transition duration-300 bg-card"
+            >
+              <div className="flex justify-between">
+                <h1 className="text-[#65758b]">{card.title}</h1>
+                <div className={`${card.color} p-2 rounded-lg`}>
+                  {card.icon}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <h1 className="font-bold text-3xl">{card.value}</h1>
+                <div className="flex justify-start items-center gap-1">
+                  <TrendingUp size={12} color="#10b77f" />
+                  <p className="text-[12px] text-[#10b77f]">{card.growth}</p>
+                </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <h1 className="font-bold text-3xl">248</h1>
-              <div className="flex justify-start items-center gap-1">
-                <TrendingUp size={12} color="#10b77f" />
-                <p className="text-[12px] text-[#10b77f]">
-                  +12.5% from last month
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between">
-              <h1 className="text-[#65758b]">Attendance Rate</h1>
-              <div className="bg-[#10b77f1a] p-2 rounded-lg">
-                <UserCheck size={32} color="#10b77f" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h1 className="font-bold text-3xl">94.2%</h1>
-              <div className="flex justify-start items-center gap-1">
-                <TrendingUp size={12} color="#10b77f" />
-                <p className="text-[12px] text-[#10b77f]">
-                  +2.3% from last month
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between">
-              <h1 className="text-[#65758b]">Total Payroll</h1>
-              <div className="bg-[#1f51c71a] p-2 rounded-lg">
-                <BadgeCent size={32} color="#1f51c7" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h1 className="font-bold text-3xl">GH₵ 485K</h1>
-              <div className="flex justify-start items-center gap-1">
-                <TrendingUp size={12} color="#10b77f" />
-                <p className="text-[12px] text-[#10b77f]">
-                  +8.1% from last month
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="border-[1px] rounded-lg p-6 flex flex-col gap-4 hover:shadow-lg transition duration-300 bg-card">
-            <div className="flex justify-between">
-              <h1 className="text-[#65758b]">Growth Rate</h1>
-              <div className="bg-[#f5d88a5a] p-2 rounded-lg">
-                <TrendingUp size={32} color="#d1a11f" strokeWidth={3} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <h1 className="font-bold text-3xl">15.3%</h1>
-              <div className="flex justify-start items-center gap-1">
-                <TrendingUp size={12} color="#10b77f" />
-                <p className="text-[12px] text-[#10b77f]">
-                  +3.2% from last month
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -265,7 +250,7 @@ export const Dashboard = () => {
           <div className="flex justify-between">
             <h1 className="font-medium text-lg">Pending Actions</h1>
             <p className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full">
-              {count} pending
+              {/* {count}  */}0 pending
             </p>
           </div>
 

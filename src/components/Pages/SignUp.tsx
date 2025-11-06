@@ -250,7 +250,7 @@ export default function SignUp() {
         <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             className="text-primary font-semibold hover:underline"
           >
             Sign In
