@@ -1,10 +1,4 @@
-// src/App.tsx
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  BrowserRouter,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { Toaster } from "sonner";
 
@@ -17,6 +11,7 @@ import Settings from "./components/Pages/Settings";
 import Attendance from "./components/Pages/Attendance";
 import Payroll from "./components/Pages/Payroll";
 import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
+import SignUp from "./components/Pages/SignUp";
 
 // Layout & Auth
 import DashboardLayout from "./components/template/sidenav";
@@ -25,20 +20,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Assets
 import Access from "./assets/access_denied-removebg-preview.png";
-import SignUp from "./components/Pages/SignUp";
 
 export const App = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <Router>
         <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<SignIn />} />
+          {/* Public Routes */}
+          <Route path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/employee-checkin" element={<EmployeeCheckin />} />{" "}
-          {/* Protected Dashboard */}
+          <Route path="/employee-checkin" element={<EmployeeCheckin />} />
+
+          {/* Protected Dashboard Routes */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardLayout />
@@ -52,7 +47,8 @@ export const App = () => {
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-          {/* 404 / Access denied */}
+
+          {/* Fallback Route */}
           <Route
             path="*"
             element={
@@ -65,7 +61,7 @@ export const App = () => {
                 <h1 className="text-5xl font-bold">Access Denied!</h1>
                 <p className="text-muted-foreground">
                   Kindly{" "}
-                  <a href="/login" className="text-primary underline">
+                  <a href="/" className="text-primary underline">
                     login
                   </a>{" "}
                   to access the dashboard.
@@ -75,9 +71,8 @@ export const App = () => {
           />
         </Routes>
 
-        {/* Global Toaster for Sonner */}
+        {/* Global Toaster */}
         <Toaster
-          // richColors
           position="top-right"
           toastOptions={{
             style: { borderRadius: "8px", fontFamily: "Inter" },
@@ -87,7 +82,7 @@ export const App = () => {
             },
           }}
         />
-      </BrowserRouter>
+      </Router>
     </AuthProvider>
   );
 };

@@ -14,12 +14,14 @@ import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignIn() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [posting] = useCrudFunc();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     emailOrUsername: "",
     password: "",
@@ -31,7 +33,6 @@ export default function SignIn() {
       [key]: value,
     }));
   };
-  console.log("Form:", form);
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
@@ -55,7 +56,8 @@ export default function SignIn() {
           duration: 3000,
         });
 
-        setTimeout(() => navigate("/"), 1500);
+        // Redirect to dashboard after login
+        setTimeout(() => navigate("/dashboard"), 1500);
       } else if (message.includes("invalid") || message.includes("incorrect")) {
         toast.error("Invalid username or password!");
       } else if (message.includes("not found")) {
@@ -117,19 +119,28 @@ export default function SignIn() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <label htmlFor="password" className="text-sm font-semibold">
                 Password
               </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="*****"
-                value={form.password}
-                onChange={(e: any) => updateState("password", e.target.value)}
-                required
-                className="py-6 px-4 border focus:border-primary transition-colors"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={(e) => updateState("password", e.target.value)}
+                  required
+                  className="py-6 px-4 pr-10 border focus:border-primary focus:ring-2 focus:ring-primary/40 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="text-right">

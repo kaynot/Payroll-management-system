@@ -14,6 +14,7 @@ import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react"; // 👈 Added
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -28,13 +29,16 @@ export default function SignUp() {
     surName: "",
   });
 
+  // 👇 States for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const updateState = (key: string, value: any) => {
     setForm((prev: any) => ({
       ...prev,
       [key]: value,
     }));
   };
-  console.log("Form", form);
 
   const handleRegister = async (e: any) => {
     e.preventDefault();
@@ -56,13 +60,10 @@ export default function SignUp() {
 
       const message = response?.data?.message || "";
 
-      // Registration successful
       if (response?.status === 200 || response?.status === 201) {
         toast.success("🎉 Account created successfully!");
         setTimeout(() => navigate("/login"), 1500);
-      }
-      // Backend returned a known message (e.g., email or username conflict)
-      else if (message.includes("email")) {
+      } else if (message.includes("email")) {
         toast.error("Email already exists! Try a different one.");
       } else if (message.includes("username") || message.includes("userName")) {
         toast.error("Username already exists! Choose a different one.");
@@ -70,7 +71,6 @@ export default function SignUp() {
         toast.error(message || "Registration failed. Please try again.");
       }
     } catch (error: any) {
-      // Server returned conflict (409)
       if (error.response?.status === 409) {
         const errMsg = error.response?.data?.message?.toLowerCase() || "";
         if (errMsg.includes("email")) {
@@ -119,9 +119,7 @@ export default function SignUp() {
                 type="text"
                 placeholder="Choose a username"
                 value={form.userName}
-                onChange={(e: any) => {
-                  updateState("userName", e.target.value);
-                }}
+                onChange={(e: any) => updateState("userName", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
@@ -138,9 +136,9 @@ export default function SignUp() {
                   type="text"
                   placeholder="First Name"
                   value={form.firstName}
-                  onChange={(e: any) => {
-                    updateState("firstName", e.target.value);
-                  }}
+                  onChange={(e: any) =>
+                    updateState("firstName", e.target.value)
+                  }
                   required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
@@ -156,9 +154,7 @@ export default function SignUp() {
                   type="text"
                   placeholder="Surname"
                   value={form.surName}
-                  onChange={(e: any) => {
-                    updateState("surName", e.target.value);
-                  }}
+                  onChange={(e: any) => updateState("surName", e.target.value)}
                   required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
@@ -175,52 +171,69 @@ export default function SignUp() {
                 type="email"
                 placeholder="user@example.com"
                 value={form.email}
-                onChange={(e: any) => {
-                  updateState("email", e.target.value);
-                }}
+                onChange={(e: any) => updateState("email", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
             </div>
 
+            {/* Password + Confirm Password with toggles */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label htmlFor="password" className="text-sm font-semibold">
                   Password
                 </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="*****"
-                  value={form.password}
-                  onChange={(e: any) => {
-                    updateState("password", e.target.value);
-                  }}
-                  required
-                  className="py-6 px-4 border focus:border-primary transition-colors"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="*****"
+                    value={form.password}
+                    onChange={(e: any) =>
+                      updateState("password", e.target.value)
+                    }
+                    required
+                    className="py-6 px-4 border focus:border-primary transition-colors pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label
                   htmlFor="confirmPassword"
                   className="text-sm font-semibold"
                 >
                   Confirm Password
                 </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="*****"
-                  value={form.confirmPassword}
-                  onChange={(e: any) => {
-                    updateState("confirmPassword", e.target.value);
-                  }}
-                  required
-                  className="py-6 px-4 border focus:border-primary transition-colors"
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="*****"
+                    value={form.confirmPassword}
+                    onChange={(e: any) =>
+                      updateState("confirmPassword", e.target.value)
+                    }
+                    required
+                    className="py-6 px-4 border focus:border-primary transition-colors pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
