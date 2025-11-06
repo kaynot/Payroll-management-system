@@ -20,9 +20,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Redirect to "/" (login page) if no user is authenticated
   if (!user) {
-    console.warn("[ProtectedRoute] No user found — redirecting to /login");
-    return <Navigate to="/login" replace />;
+    console.warn("[ProtectedRoute] No user found — redirecting to /");
+    return <Navigate to="/" replace />;
   }
 
   console.log("[ProtectedRoute] Authenticated — rendering children");

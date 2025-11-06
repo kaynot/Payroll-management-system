@@ -13,10 +13,13 @@ import { Input } from "../ui/input";
 import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react"; // 👈 Added
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [posting] = useCrudFunc();
+  const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
     userName: "",
     email: "",
@@ -25,7 +28,10 @@ export default function SignUp() {
     firstName: "",
     surName: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
+
+  // 👇 States for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const updateState = (key: string, value: any) => {
     setForm((prev: any) => ({
@@ -33,15 +39,14 @@ export default function SignUp() {
       [key]: value,
     }));
   };
-  console.log("Form", form);
 
   const handleRegister = async (e: any) => {
     e.preventDefault();
 
-    // if (form.password !== form.confirmPassword) {
-    //   alert("Passwords do not match.");
-    //   return;
-    // }
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -53,16 +58,32 @@ export default function SignUp() {
         surName: form.surName,
       });
 
-      const status = response?.data?.statusCode;
-      if (status === 200 || status === 201) {
-        alert("Account created successfully!");
-        navigate("/signin");
+      const message = response?.data?.message || "";
+
+      if (response?.status === 200 || response?.status === 201) {
+        toast.success("🎉 Account created successfully!");
+        setTimeout(() => navigate("/login"), 1500);
+      } else if (message.includes("email")) {
+        toast.error("Email already exists! Try a different one.");
+      } else if (message.includes("username") || message.includes("userName")) {
+        toast.error("Username already exists! Choose a different one.");
       } else {
-        alert(response?.data?.message || "Registration failed. Try again.");
+        toast.error(message || "Registration failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        const errMsg = error.response?.data?.message?.toLowerCase() || "";
+        if (errMsg.includes("email")) {
+          toast.error("Email is already registered.");
+        } else if (errMsg.includes("username") || errMsg.includes("user")) {
+          toast.error("Username is already taken.");
+        } else {
+          toast.error("Account already exists.");
+        }
+      } else {
+        toast.error("Something went wrong. Please try again later.");
+      }
       console.error("Registration error:", error);
-      alert("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +91,7 @@ export default function SignUp() {
 
   return (
     <AuthLayout>
-      <CardHeader className="space-y-6 text-center pb-8 pt-10">
+      <CardHeader className="space-y-6 text-center pb-8 pt-10 ">
         <AuthLogo />
         <div className="space-y-2">
           <CardTitle className="text-4xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -98,9 +119,7 @@ export default function SignUp() {
                 type="text"
                 placeholder="Choose a username"
                 value={form.userName}
-                onChange={(e: any) => {
-                  updateState("userName", e.target.value);
-                }}
+                onChange={(e: any) => updateState("userName", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
@@ -117,9 +136,9 @@ export default function SignUp() {
                   type="text"
                   placeholder="First Name"
                   value={form.firstName}
-                  onChange={(e: any) => {
-                    updateState("firstName", e.target.value);
-                  }}
+                  onChange={(e: any) =>
+                    updateState("firstName", e.target.value)
+                  }
                   required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
@@ -135,9 +154,7 @@ export default function SignUp() {
                   type="text"
                   placeholder="Surname"
                   value={form.surName}
-                  onChange={(e: any) => {
-                    updateState("surName", e.target.value);
-                  }}
+                  onChange={(e: any) => updateState("surName", e.target.value)}
                   required
                   className="py-6 px-4 border focus:border-primary transition-colors"
                 />
@@ -154,53 +171,70 @@ export default function SignUp() {
                 type="email"
                 placeholder="user@example.com"
                 value={form.email}
-                onChange={(e: any) => {
-                  updateState("email", e.target.value);
-                }}
+                onChange={(e: any) => updateState("email", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />
             </div>
 
+            {/* Password + Confirm Password with toggles */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label htmlFor="password" className="text-sm font-semibold">
                   Password
                 </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="*****"
-                  value={form.password}
-                  onChange={(e: any) => {
-                    updateState("password", e.target.value);
-                  }}
-                  required
-                  className="py-6 px-4 border focus:border-primary transition-colors"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="*****"
+                    value={form.password}
+                    onChange={(e: any) =>
+                      updateState("password", e.target.value)
+                    }
+                    required
+                    className="py-6 px-4 border focus:border-primary transition-colors pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
-              {/* <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label
                   htmlFor="confirmPassword"
                   className="text-sm font-semibold"
                 >
                   Confirm Password
                 </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="*****"
-                  value={form.confirmPassword}
-                  onChange={(e: any) => {
-                    updateState("confirm-pass", e.target.value);
-                  }}
-                  required
-                  className="py-6 px-4 border focus:border-primary transition-colors"
-                />
-              </div> */}
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="*****"
+                    value={form.confirmPassword}
+                    onChange={(e: any) =>
+                      updateState("confirmPassword", e.target.value)
+                    }
+                    required
+                    className="py-6 px-4 border focus:border-primary transition-colors pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -216,7 +250,7 @@ export default function SignUp() {
         <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             className="text-primary font-semibold hover:underline"
           >
             Sign In

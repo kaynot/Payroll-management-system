@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   Wallet,
+  BellDot,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
@@ -20,12 +21,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "HR Management", href: "/hr", icon: Users },
-  { name: "Attendance", href: "/attendance", icon: Calendar },
-  { name: "Payroll", href: "/payroll", icon: DollarSign },
-  { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "HR Management", href: "/dashboard/hr", icon: Users },
+  { name: "Attendance", href: "/dashboard/attendance", icon: Calendar },
+  { name: "Payroll", href: "/dashboard/payroll", icon: DollarSign },
+  { name: "Reports", href: "/dashboard/reports", icon: FileText },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 const DashboardLayout = () => {
@@ -37,11 +38,12 @@ const DashboardLayout = () => {
   const handleLogout = () => {
     logout();
     toast.success("Logged out successfully");
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true }); // Redirect to login
   };
 
   return (
     <div className="flex bg-background">
+      {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -49,6 +51,7 @@ const DashboardLayout = () => {
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-50 h-screen w-64 bg-card border-r border-border transition-transform duration-300 ease-in-out lg:translate-x-0",
@@ -56,6 +59,7 @@ const DashboardLayout = () => {
         )}
       >
         <div className="flex flex-col h-full">
+          {/* Logo & Close Button */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-border">
             <h1 className="text-xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Innorik
@@ -70,9 +74,10 @@ const DashboardLayout = () => {
             </Button>
           </div>
 
+          {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = location.pathname.startsWith(item.href);
+              const isActive = location.pathname === item.href;
               return (
                 <Button
                   key={item.name}
@@ -93,6 +98,7 @@ const DashboardLayout = () => {
             })}
           </nav>
 
+          {/* User Info & Logout */}
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="h-10 w-10 border-2 border-primary/20 rounded-full flex justify-center items-center bg-primary">
@@ -120,6 +126,7 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
+      {/* Main Content */}
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 border-b border-border backdrop-blur-sm bg-card/95 flex items-center justify-between px-2 md:px-4 sm:px-2 lg:px-8">
@@ -134,9 +141,15 @@ const DashboardLayout = () => {
           <h2 className="text-lg font-heading font-semibold hidden lg:block">
             Payroll, HR & Attendance System
           </h2>
+
+          {/* Notifications */}
           <div className="flex items-center gap-2">
             <Popover>
-              <PopoverTrigger />
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <BellDot className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
               <PopoverContent className="w-80 p-0">
                 <div className="p-3 border-b flex justify-between items-center">
                   <h3 className="font-semibold">Notifications</h3>
@@ -167,6 +180,7 @@ const DashboardLayout = () => {
           </div>
         </header>
 
+        {/* Page Content */}
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
           <Outlet />
         </main>

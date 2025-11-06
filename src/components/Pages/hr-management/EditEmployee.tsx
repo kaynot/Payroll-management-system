@@ -23,7 +23,6 @@ interface EditEmployeeProps {
 export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
   if (!employee) return null; // Prevent rendering without an employee
 
-  // Normalize join date (since it's string | number | readonly string[] | undefined)
   const formattedJoinDate =
     typeof employee.joinDate === "string"
       ? employee.joinDate
@@ -33,15 +32,14 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
       ? employee.joinDate[0]
       : "";
 
-  // Normalize status for the select field
   const normalizedStatus = employee.status
     ? employee.status.toLowerCase().replace(" ", "")
     : "active";
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    // ✅ FIXED HERE
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="lg:max-w-2xl md:max-w-lg sm:max-w-md w-full gap-8">
-        {/* Header */}
         <DialogHeader className="space-y-2 flex justify-center items-center">
           <DialogTitle>Edit Employee Details</DialogTitle>
           <DialogDescription>
@@ -50,7 +48,6 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Profile Overview */}
         <div className="flex flex-col gap-6">
           <div className="bg-muted flex items-center gap-4 p-4 rounded-2xl">
             <img
@@ -132,7 +129,6 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
                   defaultValue={formattedJoinDate}
                   className="w-full rounded-md border bg-white px-3 py-2 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                 />
-                {/* Custom calendar icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"

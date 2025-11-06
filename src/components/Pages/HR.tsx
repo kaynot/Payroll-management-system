@@ -131,7 +131,7 @@ export default function HR() {
       </section>
 
       {/* EMPLOYEE TABLE */}
-      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between lg:min-h-[640px] bg-card">
+      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between lg:min-h-[630px] bg-card">
         <div className="flex flex-col gap-8">
           <div className="flex justify-between items-center">
             <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
@@ -240,7 +240,10 @@ export default function HR() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem
-                            onClick={() => setViewEmployeeOpen(true)}
+                            onClick={() => {
+                              setSelectedEmployee(employee);
+                              setViewEmployeeOpen(true);
+                            }}
                           >
                             <Eye /> View Employee
                           </DropdownMenuItem>
@@ -290,6 +293,16 @@ export default function HR() {
           </PaginationContent>
         </Pagination>
       </section>
+      <ViewEmployee
+        open={viewEmployeeOpen}
+        onClose={() => setViewEmployeeOpen(false)}
+      />
+      {editEmployeeOpen && (
+        <EditEmployee
+          employee={selectedEmployee}
+          onClose={() => setEditEmployeeOpen(false)}
+        />
+      )}
     </motion.main>
   );
 }
