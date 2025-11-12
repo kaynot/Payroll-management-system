@@ -7,18 +7,19 @@ export const GetDataFunc = async (url: string, params?: any) => {
   }
 
   try {
-    // Make the GET request using axios
-    const getResponse = await axios.get(
-      `https://localhost:7002/api/${url}`,
+    // Ensure no leading slash in url
+    const cleanUrl = url.startsWith("/") ? url.slice(1) : url;
+
+    // Make the GET request
+    const response = await axios.get(
+      `http://localhost:7002/api/${cleanUrl}`,
       requestConfig(params)
     );
-    // Return the response data
-    return getResponse;
-  } catch (error) {
-    // Handle any errors that might occur during the request
-    console.error("Error fetching data:", error);
 
-    // Return an empty data object or handle the error as needed
-    return { data: [] };
+    // Return only the actual data from the API
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return { data: [] }; // return empty array for table fallback
   }
 };
