@@ -29,30 +29,22 @@ const useFetch = (
   }
 
   const fetchData = async () => {
-    // dispatch(setGeneralValue({ expr: "formData", value: [] })); //clear form data from redux general store
     try {
-      setLoading(true); // initially set loading state
-      // get data
+      setLoading(true);
       const res = await GetDataFunc(`${route}`, params ?? "");
-      if (res?.data?.data) {
-        if (Array.isArray(res?.data?.data)) {
-          const newArray = res?.data?.data?.map((obj: any) => ({
-            ...obj,
-            id: generateRandomId(),
-          }));
-          setData(newArray);
-        } else {
-          const newArray = res?.data?.data?.data?.map((obj: any) => ({
-            ...obj,
-            id: generateRandomId(),
-          }));
-          setData(newArray);
-        }
+
+      // Expecting backend response: { message: string, data: array }
+      if (res?.data && Array.isArray(res.data)) {
+        setData(res.data);
+      } else if (res?.data?.data && Array.isArray(res.data.data)) {
+        setData(res.data.data);
+      } else {
+        setData([]);
       }
     } catch (error: any) {
       setError(error);
     } finally {
-      setLoading(false); //loading state to false
+      setLoading(false);
     }
   };
 
