@@ -93,8 +93,7 @@ export default function HR() {
 
   // Fetch employees from API
   const [employees, fetchError, loading] = useFetch("/Employee/employee");
-  if (loading) return <p>Loading...</p>;
-  if (fetchError) return <p>Error fetching data.</p>;
+  console.log("HR employees data:", employees);
 
   return (
     <motion.main

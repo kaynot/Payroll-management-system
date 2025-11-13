@@ -35,18 +35,9 @@ const useFetch = (
 
       // Expecting backend response: { message: string, data: array }
       if (res?.data && Array.isArray(res.data)) {
-        const newArray = res.data.map((obj: any) => ({
-          ...obj,
-          id: generateRandomId(),
-        }));
-        setData(newArray);
+        setData(res.data);
       } else if (res?.data?.data && Array.isArray(res.data.data)) {
-        // fallback for nested data
-        const newArray = res.data.data.map((obj: any) => ({
-          ...obj,
-          id: generateRandomId(),
-        }));
-        setData(newArray);
+        setData(res.data.data);
       } else {
         setData([]);
       }

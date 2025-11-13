@@ -5,11 +5,12 @@ import { Badge } from "../ui/badge";
 import { Search, Clock, UserCheck, UserX, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCrudFunc } from "../hooks/crud";
+import { useAttendance } from "../hooks/useAttendance";
 
 interface Employee {
   id: number;
   fullName: string;
-  department: string;
+  jobPosition: string;
   status: "in" | "out";
   lastCheckIn: string | null;
   lastCheckOut: string | null;
@@ -20,8 +21,10 @@ const CheckInOut = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [foundEmployee, setFoundEmployee] = useState<Employee | null>(null);
+  const [searchResults, setSearchResults] = useState<Employee[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [get, put] = useCrudFunc();
+  const { checkIn, checkOut } = useAttendance();
+  const [postData, updateData, patchData, fetchData] = useCrudFunc();
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -53,25 +56,29 @@ const CheckInOut = () => {
 
     setIsSearching(true);
     try {
-      // Fetch from backend API
-      const response = await get(
+      const response = await fetchData(
         `Employee/employee?SearchText=${searchQuery}`,
         null
       );
 
-      if (response?.data?.data && response.data.data.length > 0) {
-        const emp = response.data.data[0]; // take the first match
-        const employee: Employee = {
+      const results = response?.data?.data || [];
+
+      if (results.length > 0) {
+        const employees: Employee[] = results.map((emp: any) => ({
           id: emp.id,
           fullName: emp.fullName || emp.name,
           department: emp.department || "N/A",
-          status: "out", // default until checked in
-          lastCheckIn: null,
-          lastCheckOut: null,
-        };
-        setFoundEmployee(employee);
-        toast.success("Employee found!");
+          status: emp.status || "out",
+          lastCheckIn: emp.lastCheckIn || null,
+          lastCheckOut: emp.lastCheckOut || null,
+        }));
+
+        setSearchResults(employees);
+        setFoundEmployee(employees[0]); // select first by default
+        toast.success(`${employees.length} employee(s) found!`);
       } else {
+        setSearchResults([]);
+        setFoundEmployee(null);
         toast.error("No employee found with that name or ID");
       }
     } catch (err) {
@@ -89,25 +96,18 @@ const CheckInOut = () => {
 
     try {
       const isCheckingIn = foundEmployee.status === "out";
+      const response = isCheckingIn
+        ? await checkIn({ employeeId: foundEmployee.id })
+        : await checkOut({ employeeId: foundEmployee.id });
 
-      // Send PUT request to your backend
-      const response = await put("Attendance/checkin", {
-        employeeId: foundEmployee.id,
-      });
-
-      if (response?.status === 200 || response?.data?.statusCode === 200) {
+      if (response?.statusCode === 200) {
         const timestamp = new Date().toLocaleString();
-        const updatedEmployee: Employee = {
-          ...(foundEmployee as Employee),
-          status: (isCheckingIn ? "in" : "out") as "in" | "out",
-          lastCheckIn: isCheckingIn
-            ? timestamp
-            : (foundEmployee as Employee).lastCheckIn,
-          lastCheckOut: !isCheckingIn
-            ? timestamp
-            : (foundEmployee as Employee).lastCheckOut,
-        };
-        setFoundEmployee(updatedEmployee);
+        setFoundEmployee({
+          ...foundEmployee,
+          status: isCheckingIn ? "in" : "out",
+          lastCheckIn: isCheckingIn ? timestamp : foundEmployee.lastCheckIn,
+          lastCheckOut: !isCheckingIn ? timestamp : foundEmployee.lastCheckOut,
+        });
 
         toast.success(
           isCheckingIn
@@ -181,7 +181,32 @@ const CheckInOut = () => {
             </Button>
           </div>
 
-          {foundEmployee && (
+          {/* Dropdown for multiple results */}
+          {searchResults.length > 1 && (
+            <div className="mb-4">
+              <label className="block text-xs text-gray-400 mb-1">
+                Select Employee
+              </label>
+              <select
+                className="w-full bg-white/5 border border-white/20 text-gray-100 px-4 py-2 rounded-lg focus:ring-2 focus:ring-cyan-500"
+                value={foundEmployee?.id || ""}
+                onChange={(e) => {
+                  const selectedId = Number(e.target.value);
+                  const selectedEmployee =
+                    searchResults.find((emp) => emp.id === selectedId) || null;
+                  setFoundEmployee(selectedEmployee);
+                }}
+              >
+                {searchResults.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.fullName} ({emp.jobPosition})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {foundEmployee ? (
             <div className="animate-fade-in space-y-6">
               <div className="h-px bg-white/10" />
               <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
@@ -202,11 +227,9 @@ const CheckInOut = () => {
                       <p className="text-cyan-500">{foundEmployee.id}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase">
-                        Department
-                      </p>
+                      <p className="text-xs text-gray-400 uppercase">Role</p>
                       <p className="text-cyan-500">
-                        {foundEmployee.department}
+                        {foundEmployee.jobPosition}
                       </p>
                     </div>
                   </div>
@@ -267,9 +290,7 @@ const CheckInOut = () => {
                 )}
               </Button>
             </div>
-          )}
-
-          {!foundEmployee && !isSearching && (
+          ) : !isSearching ? (
             <div className="text-center py-12 text-gray-500 animate-fade-in">
               <UserCheck className="h-16 w-16 mx-auto mb-4 opacity-20" />
               <p className="text-lg font-medium">
@@ -279,7 +300,7 @@ const CheckInOut = () => {
                 and mark your attendance instantly
               </p>
             </div>
-          )}
+          ) : null}
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-8">
