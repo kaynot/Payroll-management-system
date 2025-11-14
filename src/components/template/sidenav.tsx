@@ -84,7 +84,14 @@ export default function DashboardLayout() {
               />
               {/* Show text only when sidebar is expanded OR mobile */}
               {(!sidebarCollapsed || !isDesktop) && (
-                <h1 className="font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mt-1 transition-opacity duration-300 ease-out">
+                <h1
+                  className={cn(
+                    "font-heading font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mt-1 transition-all duration-300 ease-out",
+                    sidebarCollapsed && isDesktop
+                      ? "opacity-0 w-0 overflow-hidden"
+                      : "opacity-100 w-auto"
+                  )}
+                >
                   Innorik
                 </h1>
               )}

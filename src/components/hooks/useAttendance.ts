@@ -5,7 +5,7 @@ export const useAttendance = () => {
 
   const checkIn = async (payload: any) => {
     try {
-      const res = await postData("Attendance/checkin", payload);
+      const res = await postData("Attendance/CheckIn", payload);
       return res.data;
     } catch (err) {
       throw err;
@@ -14,7 +14,7 @@ export const useAttendance = () => {
 
   const checkOut = async (payload: any) => {
     try {
-      const res = await updateData("Attendance/checkout", payload);
+      const res = await updateData("Attendance/CheckOut", payload);
       return res.data;
     } catch (err) {
       throw err;
