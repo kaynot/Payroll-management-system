@@ -67,7 +67,7 @@ const CheckInOut = () => {
         const employees: Employee[] = results.map((emp: any) => ({
           id: emp.id,
           fullName: emp.fullName || emp.name,
-          department: emp.department || "N/A",
+          jobPosition: emp.jobPosition || "N/A",
           status: emp.status || "out",
           lastCheckIn: emp.lastCheckIn || null,
           lastCheckOut: emp.lastCheckOut || null,

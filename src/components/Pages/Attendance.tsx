@@ -110,7 +110,7 @@ export default function Attendance() {
             <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
               Today's Attendance
             </h1>
-            <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
+            <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[30%]">
               <Search size={16} color="#9ca3af" />
               <input
                 type="text"
@@ -120,30 +120,32 @@ export default function Attendance() {
                 className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
               />
             </div>
-            <Select>
-              <SelectTrigger className="pl-8 pr-4 w-[200px]">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                <SelectItem value="engineering">Engineering</SelectItem>
-                <SelectItem value="hr">HR</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="operations">Operations</SelectItem>
-                <SelectItem value="sales">Sales</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select>
-              <SelectTrigger className="pl-8 pr-4 w-[200px]">
-                <SelectValue placeholder="Present" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="present">Present</SelectItem>
-                <SelectItem value="late">Late</SelectItem>
-                <SelectItem value="absent">Absent</SelectItem>
-                <SelectItem value="on-leave">On Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex justify-between items-center gap-2">
+              <Select>
+                <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="engineering">Engineering</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="operations">Operations</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select>
+                <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                  <SelectValue placeholder="Present" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="present">Present</SelectItem>
+                  <SelectItem value="late">Late</SelectItem>
+                  <SelectItem value="absent">Absent</SelectItem>
+                  <SelectItem value="on-leave">On Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Table */}

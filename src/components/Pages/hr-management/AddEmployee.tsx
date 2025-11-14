@@ -303,6 +303,7 @@ export const AddEmployee = () => {
                       console.log("address:", e.target.value);
                     }}
                     autoComplete="off"
+                    className="w-full rounded-md border bg-white h-9 px-3 py-2 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                   />
                 </div>
               </div>
