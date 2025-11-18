@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,10 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../ui/dialog";
-
 import { Input } from "../../ui/input";
-import { useState } from "react";
-
 import {
   Select,
   SelectContent,
@@ -19,11 +16,19 @@ import {
   SelectValue,
 } from "../../ui/select";
 import { Plus } from "lucide-react";
-
 import { useCrudFunc } from "../../hooks/crud";
 import useFetch from "../../hooks/useFetch";
+import { useEmployees } from "../../../context/EmployeeContext";
 
-export const AddEmployee = () => {
+import { uppercaseTitle } from "../../../utils/format";
+interface AddEmployeeProps {
+  onEmployeeAdded?: () => void;
+}
+
+export const AddEmployee: React.FC<AddEmployeeProps> = ({
+  onEmployeeAdded,
+}) => {
+  const { employees, setEmployees } = useEmployees();
   const [title, setTitle] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [surname, setSurname] = useState<string>("");
@@ -38,6 +43,10 @@ export const AddEmployee = () => {
   const [employmentType, setEmploymentType] = useState<string>("");
   const [salary, setSalary] = useState<string>("");
   const [payFrequency, setPayFrequency] = useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [departments, setDepartments] = useState<
+    { dptId: number; name: string }[]
+  >([]);
 
   const EMPLOYMENT_TYPES = [
     { label: "Full-time", value: "FullTime" },
@@ -46,20 +55,8 @@ export const AddEmployee = () => {
     { label: "Internship", value: "Intern" },
   ];
 
-  interface Department {
-    dptId: number;
-    name: string;
-  }
-
-  const [open, setOpen] = useState(false);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-
   const [postData] = useCrudFunc();
-  const [departmentData, department_loading, department_error] = useFetch(
-    "Department/departments"
-  );
-  console.log("fetchDep", departmentData);
+  const [departmentData] = useFetch("Department/departments");
 
   React.useEffect(() => {
     if (departmentData) {
@@ -73,7 +70,6 @@ export const AddEmployee = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const selectedDept = departments.find(
       (d) => d.dptId.toString() === departmentId
     );
@@ -91,7 +87,7 @@ export const AddEmployee = () => {
       PhoneNumber: phoneNumber,
       DateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
       Address: address,
-      DepartmentId: departmentId, // number
+      DepartmentId: departmentId,
       JobPosition: jobPosition,
       HireDate: hireDate ? new Date(hireDate).toISOString() : null,
       EmploymentType: employmentType,
@@ -101,8 +97,9 @@ export const AddEmployee = () => {
 
     try {
       const res = await postData("Employee/employee", payload);
-      console.log("Employee added:", res.data);
+      setEmployees((prev) => [...prev, res.data]);
       setOpen(false);
+      onEmployeeAdded?.();
     } catch (err) {
       console.error("Error adding employee:", err);
       alert("Failed to add employee. Check console for details.");
@@ -291,7 +288,7 @@ export const AddEmployee = () => {
                 </div>
                 <div className="flex flex-col gap-1">
                   <label htmlFor="address" className="text-sm font-semibold">
-                    Address
+                    Address *
                   </label>
                   <Input
                     type="text"
@@ -505,7 +502,9 @@ export const AddEmployee = () => {
               <div>
                 <p className="text-muted-foreground">
                   Full Name:{" "}
-                  <span className="text-gray-800">{`${title} ${firstName} ${otherName} ${surname}`}</span>
+                  <span className="text-gray-800">{`${uppercaseTitle(
+                    title
+                  )} ${firstName} ${otherName} ${surname}`}</span>
                 </p>
               </div>
               <div>
@@ -551,3 +550,6 @@ export const AddEmployee = () => {
     </Dialog>
   );
 };
+function onEmployeeAdded() {
+  throw new Error("Function not implemented.");
+}

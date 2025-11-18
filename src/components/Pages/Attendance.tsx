@@ -1,15 +1,7 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Search,
-  Calendar,
-  Upload,
-  Download,
-  EllipsisVertical,
-  Eye,
-  SquarePen,
-  Trash2,
-} from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { Search, Upload, Download } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -19,14 +11,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../ui/pagination";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-
 import {
   Select,
   SelectTrigger,
@@ -34,15 +18,186 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
+import { useAuth } from "../../context/AuthContext";
+
+interface AttendanceRow {
+  id: number;
+  name: string;
+  dept: string;
+  date: string;
+  checkIn: string;
+  checkOut: string;
+  status: string;
+}
+
+interface SummaryData {
+  totalEmployees: number;
+  presentToday: number;
+  lateArrivals: number;
+  absent: number;
+}
 
 export default function Attendance() {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+
+  const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
+  const [searchText, setSearchText] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const fetchSummary = async () => {
+    if (!token) return navigate("/", { replace: true });
+
+    try {
+      const res = await fetch("https://localhost:7003/api/Attendance/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) return navigate("/", { replace: true });
+      const data = await res.json();
+      if (res.ok) setSummary(data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAttendance = async () => {
+    if (!token) return navigate("/", { replace: true });
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        PageNumber: pageNumber.toString(),
+        PageSize: pageSize.toString(),
+        StartDate: today,
+        EndDate: today,
+        SearchText: searchText,
+        Department: departmentFilter,
+        Status: statusFilter,
+      });
+      const res = await fetch(
+        `https://localhost:7003/api/Attendance?${params.toString()}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.status === 401) return navigate("/", { replace: true });
+      const data = await res.json();
+      if (res.ok) {
+        setAttendance(data.data);
+        setTotalPages(data.totalPages || 1); // ensure API returns totalPages
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        await fetchSummary();
+        await fetchAttendance();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+  }, [user, token]);
+
+  useEffect(() => {
+    if (user && token) fetchAttendance();
+  }, [searchText, departmentFilter, statusFilter, pageNumber]);
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const delta = 2; // how many pages around current
+    const left = Math.max(1, pageNumber - delta);
+    const right = Math.min(totalPages, pageNumber + delta);
+
+    if (left > 1) {
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            isActive={1 === pageNumber}
+            onClick={(e) => {
+              e.preventDefault();
+              setPageNumber(1);
+            }}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      if (left > 2) items.push(<PaginationEllipsis key="start-ellipsis" />);
+    }
+
+    for (let i = left; i <= right; i++) {
+      if (i === 1 || i === totalPages) continue; // already handled
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            href="#"
+            isActive={i === pageNumber}
+            onClick={(e) => {
+              e.preventDefault();
+              setPageNumber(i);
+            }}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (right < totalPages) {
+      if (right < totalPages - 1)
+        items.push(<PaginationEllipsis key="end-ellipsis" />);
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            href="#"
+            isActive={totalPages === pageNumber}
+            onClick={(e) => {
+              e.preventDefault();
+              setPageNumber(totalPages);
+            }}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return items;
+  };
+
+  if (!user || !token)
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Redirecting...
+      </div>
+    );
+
   return (
     <motion.main
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="flex flex-col "
+      className="flex flex-col"
     >
       {/* Header */}
       <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -67,25 +222,25 @@ export default function Attendance() {
         {[
           {
             title: "Present Today",
-            value: 85,
-            desc: "Out of 100 employees",
+            value: summary?.presentToday ?? 0,
+            desc: `Out of ${summary?.totalEmployees ?? 0} employees`,
             color: "text-green-600",
           },
           {
             title: "Late Arrivals",
-            value: 8,
+            value: summary?.lateArrivals ?? 0,
             desc: "After 9:00 AM",
             color: "text-amber-500",
           },
           {
             title: "Absent",
-            value: 4,
+            value: summary?.absent ?? 0,
             desc: "Unexcused absences",
             color: "text-red-500",
           },
           {
             title: "On Leave",
-            value: 3,
+            value: 0,
             desc: "Approved leave",
             color: "text-indigo-500",
           },
@@ -104,68 +259,79 @@ export default function Attendance() {
       </section>
 
       {/* Table Section */}
-      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between lg:min-h-[630px] bg-card">
-        <div className="flex flex-col gap-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
-              Today's Attendance
-            </h1>
-            <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[30%]">
-              <Search size={16} color="#9ca3af" />
-              <input
-                type="text"
-                name="search-emp"
-                id="search-emp"
-                placeholder="Search by name, ID, or department..."
-                className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
-              />
-            </div>
-            <div className="flex justify-between items-center gap-2">
-              <Select>
-                <SelectTrigger className="pl-8 pr-4 w-[200px]">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="engineering">Engineering</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="operations">Operations</SelectItem>
-                  <SelectItem value="sales">Sales</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger className="pl-8 pr-4 w-[200px]">
-                  <SelectValue placeholder="Present" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="present">Present</SelectItem>
-                  <SelectItem value="late">Late</SelectItem>
-                  <SelectItem value="absent">Absent</SelectItem>
-                  <SelectItem value="on-leave">On Leave</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between sm:min-h-[630px] md:min-h-[630px] lg:min-h-[630px] bg-card">
+        {/* Filters & Search */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
+            Today's Attendance
+          </h1>
+
+          <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[30%]">
+            <Search size={16} color="#9ca3af" />
+            <input
+              type="text"
+              placeholder="Search by name, ID, or department..."
+              className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
           </div>
 
-          {/* Table */}
-          <div className="flex flex-col overflow-auto gap-8">
+          <div className="flex justify-between gap-2">
+            <Select onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="engineering">Engineering</SelectItem>
+                <SelectItem value="hr">HR</SelectItem>
+                <SelectItem value="marketing">Marketing</SelectItem>
+                <SelectItem value="operations">Operations</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select onValueChange={setStatusFilter}>
+              <SelectTrigger className="pl-8 pr-4 w-[200px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="present">Present</SelectItem>
+                <SelectItem value="late">Late</SelectItem>
+                <SelectItem value="absent">Absent</SelectItem>
+                <SelectItem value="on-leave">On Leave</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-auto w-full mt-4">
+          {loading ? (
+            <p className="text-gray-500 text-center py-10">
+              Loading attendance...
+            </p>
+          ) : attendance.length === 0 ? (
+            <p className="text-gray-500 text-center py-10">No records found.</p>
+          ) : (
             <table className="w-full text-sm text-left">
               <thead className="border-b">
                 <tr className="border-b border-gray-200 text-left text-gray-500 font-medium">
-                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
                     Employee Name
                   </th>
-                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
                     Department
                   </th>
-                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
                     Date
                   </th>
-                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
                     Check In
                   </th>
-                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
                     Check Out
                   </th>
                   <th className="h-12 px-4 text-center font-medium text-muted-foreground">
@@ -173,48 +339,26 @@ export default function Attendance() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="border-0">
-                {[
-                  {
-                    name: "Kwame Mensah",
-                    dept: "IT",
-                    date: "2025-01-15",
-                    in: "08:00 AM",
-                    out: "05:00 PM",
-                    status: "Present",
-                    color: "bg-indigo-100 text-indigo-700",
-                  },
-                  {
-                    name: "Ama Adjei",
-                    dept: "HR",
-                    date: "2025-01-15",
-                    in: "08:15 AM",
-                    out: "05:10 PM",
-                    status: "Present",
-                    color: "bg-indigo-100 text-indigo-700",
-                  },
-                  {
-                    name: "Kofi Asante",
-                    dept: "Finance",
-                    date: "2025-01-15",
-                    in: "09:30 AM",
-                    out: "05:00 PM",
-                    status: "Late",
-                    color: "bg-amber-100 text-amber-700",
-                  },
-                ].map((row, i) => (
+              <tbody>
+                {attendance.map((row) => (
                   <tr
-                    key={i}
+                    key={row.id}
                     className="border-b transition-colors hover:bg-muted/40"
                   >
                     <td className="p-4 font-semibold">{row.name}</td>
                     <td className="p-4">{row.dept}</td>
                     <td className="p-4">{row.date}</td>
-                    <td className="p-4">{row.in}</td>
-                    <td className="p-4">{row.out}</td>
+                    <td className="p-4">{row.checkIn}</td>
+                    <td className="p-4">{row.checkOut}</td>
                     <td className="p-4 text-center">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${row.color}`}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          row.status === "Late"
+                            ? "bg-amber-100 text-amber-700"
+                            : row.status === "Absent"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-indigo-100 text-indigo-700"
+                        }`}
                       >
                         {row.status}
                       </span>
@@ -223,29 +367,32 @@ export default function Attendance() {
                 ))}
               </tbody>
             </table>
-          </div>
+          )}
         </div>
+
+        {/* Pagination */}
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious href="#" />
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setPageNumber((prev) => Math.max(prev - 1, 1));
+                }}
+              />
             </PaginationItem>
+
+            {renderPaginationItems()}
+
             <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                2
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setPageNumber((prev) => Math.min(prev + 1, totalPages));
+                }}
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>

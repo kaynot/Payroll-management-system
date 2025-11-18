@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useCrudFunc } from "../hooks/crud";
 import { useAttendance } from "../hooks/useAttendance";
 
-// -------------------- TYPES --------------------
 interface Employee {
   id: number;
   fullName: string;
@@ -17,7 +16,6 @@ interface Employee {
   lastCheckOut: string | null;
 }
 
-// -------------------- UTILS --------------------
 const formatTime = (date: Date) =>
   date.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -41,7 +39,6 @@ const parseTimestamp = (response: any, isCheckingIn: boolean) =>
     : response.data.data?.checkOutTime) ||
   new Date().toISOString();
 
-// -------------------- COMPONENTS --------------------
 const EmployeeBadge = ({ status }: { status: "in" | "out" }) =>
   status === "in" ? (
     <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 gap-1.5 px-3 py-1.5 text-sm">
@@ -54,10 +51,9 @@ const EmployeeBadge = ({ status }: { status: "in" | "out" }) =>
       Not Checked In
     </Badge>
   );
-
-// -------------------- MAIN COMPONENT --------------------
+// maion component
 const CheckInOut = () => {
-  // -------------------- STATE --------------------
+  // state
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -71,7 +67,7 @@ const CheckInOut = () => {
   const [postData, updateData, patchData, fetchData] = useCrudFunc();
   const [employeeMap, setEmployeeMap] = useState<Record<number, Employee>>({});
 
-  // -------------------- LOCALSTORAGE HELPERS --------------------
+  // localstorage helpers
   const setCooldownExpiry = (employeeId: number, expiry: number) => {
     setCooldowns((prev) => ({ ...prev, [employeeId]: expiry }));
     const stored = JSON.parse(
@@ -104,7 +100,7 @@ const CheckInOut = () => {
     return stored[employeeId] || { lastCheckIn: null, lastCheckOut: null };
   };
 
-  // -------------------- INITIALIZE EMPLOYEE MAP FROM LOCALSTORAGE --------------------
+  // initialize employee map form localstorage
   useEffect(() => {
     const storedTimestamps = JSON.parse(
       localStorage.getItem("employeeTimestamps") || "{}"
@@ -127,7 +123,7 @@ const CheckInOut = () => {
     setEmployeeMap(initialMap);
   }, []);
 
-  // -------------------- INITIALIZE COOLDOWNS --------------------
+  //initialize cooldowns
   useEffect(() => {
     const stored = JSON.parse(
       localStorage.getItem("attendanceCooldowns") || "{}"
@@ -135,13 +131,13 @@ const CheckInOut = () => {
     setCooldowns(stored);
   }, []);
 
-  // -------------------- CURRENT TIME --------------------
+  // current time
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // -------------------- REMAINING TIME --------------------
+  // remaining time
   useEffect(() => {
     if (!foundEmployee) return setRemainingTime(0);
 
@@ -155,7 +151,7 @@ const CheckInOut = () => {
     return () => clearInterval(interval);
   }, [foundEmployee, cooldowns]);
 
-  // ----------------------- RESET AFTER MIDNIGHT --------------------
+  // reset after midnight
   useEffect(() => {
     const resetAttendance = () => {
       // Reset local state
@@ -319,8 +315,8 @@ const CheckInOut = () => {
             : "Checked out successfully!"
         );
 
-        // Set 5 min cooldown
-        setCooldownExpiry(foundEmployee.id, now + 5 * 60 * 1000);
+        // Set 1 min cooldown
+        setCooldownExpiry(foundEmployee.id, now + 1 * 60 * 1000);
       } else {
         toast.error(response?.data?.message || "Attendance update failed");
       }
@@ -470,12 +466,6 @@ const CheckInOut = () => {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-6">
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase">
-                        Employee ID
-                      </p>
-                      <p className="text-cyan-500">{foundEmployee.id}</p>
-                    </div>
                     <div>
                       <p className="text-xs text-gray-400 uppercase">Role</p>
                       <p className="text-cyan-500">
