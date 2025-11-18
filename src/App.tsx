@@ -9,13 +9,14 @@ import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import Attendance from "./components/Pages/Attendance";
 import Payroll from "./components/Pages/Payroll";
-import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
+import EmployeeCheckin from "./components/Pages/EmployeeCheckInOut";
 import SignUp from "./components/Pages/SignUp";
 
 // Layout & Auth
 import DashboardLayout from "./components/template/sidenav";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { EmployeeProvider } from "./context/EmployeeContext";
 
 // Assets
 import Access from "./assets/access_denied-removebg-preview.png";
@@ -28,14 +29,16 @@ export const App = () => {
           {/* Public Routes */}
           <Route path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/employee-checkin" element={<EmployeeCheckin />} />
+          <Route path="/employee-checkInOut" element={<EmployeeCheckin />} />
 
           {/* Protected Dashboard Routes */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardLayout />
+                <EmployeeProvider>
+                  <DashboardLayout />
+                </EmployeeProvider>
               </ProtectedRoute>
             }
           >
