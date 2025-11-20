@@ -227,65 +227,63 @@ export default function HR() {
 
       {/* SUMMARY CARDS */}
       <section className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="border rounded-lg p-4 flex gap-2 hover:shadow-lg bg-card items-center">
-          <div className="flex flex-col w-full gap-2">
-            <h1 className="text-[#65758b]">Total Employees</h1>
-            <h1 className="font-bold text-3xl">
-              {summaryLoading ? "…" : summary?.totalEmployee ?? 0}
-            </h1>
-          </div>
-          <div className="bg-indigo-100 p-2 rounded-lg h-12 flex items-center justify-center">
-            <Users size={36} className="text-indigo-600" />
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4 flex gap-2 hover:shadow-lg bg-card items-center">
-          <div className="flex flex-col w-full gap-2">
-            <h1 className="text-[#65758b]">Full-time</h1>
-            <h1 className="font-bold text-3xl">
-              {summaryLoading ? "…" : summary?.fullTime ?? 0}
-            </h1>
-          </div>
-          <div className="bg-blue-100 p-2 rounded-lg h-12 flex items-center justify-center">
-            <Users size={36} className="text-blue-600" />
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4 flex gap-2 hover:shadow-lg bg-card items-center">
-          <div className="flex flex-col w-full gap-2">
-            <h1 className="text-[#65758b]">Part-time</h1>
-            <h1 className="font-bold text-3xl">
-              {summaryLoading ? "…" : summary?.partTime ?? 0}
-            </h1>
-          </div>
-          <div className="bg-orange-100 p-2 rounded-lg h-12 flex items-center justify-center">
-            <Users size={36} className="text-orange-500" />
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4 flex gap-2 hover:shadow-lg bg-card items-center">
-          <div className="flex flex-col w-full gap-2">
-            <h1 className="text-[#65758b]">NSS</h1>
-            <h1 className="font-bold text-3xl">
-              {summaryLoading ? "…" : summary?.nssPersonnel ?? 0}
-            </h1>
-          </div>
-          <div className="bg-emerald-100 p-2 rounded-lg h-12 flex items-center justify-center">
-            <Users size={36} className="text-emerald-600" />
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4 flex gap-2 hover:shadow-lg bg-card items-center">
-          <div className="flex flex-col w-full gap-2">
-            <h1 className="text-[#65758b]">Interns</h1>
-            <h1 className="font-bold text-3xl">
-              {summaryLoading ? "…" : summary?.interns ?? 0}
-            </h1>
-          </div>
-          <div className="bg-yellow-100 p-2 rounded-lg h-12 flex items-center justify-center">
-            <Users size={36} className="text-yellow-600" />
-          </div>
-        </div>
+        {[
+          {
+            label: "Total Employees",
+            value: summary?.totalEmployee ?? 0,
+            bg: "bg-gradient-to-r from-indigo-100 to-indigo-200",
+            icon: Users,
+            iconColor: "text-indigo-600",
+          },
+          {
+            label: "Full-time",
+            value: summary?.fullTime ?? 0,
+            bg: "bg-gradient-to-r from-blue-100 to-blue-200",
+            icon: Users,
+            iconColor: "text-blue-600",
+          },
+          {
+            label: "Part-time",
+            value: summary?.partTime ?? 0,
+            bg: "bg-gradient-to-r from-orange-100 to-orange-200",
+            icon: Users,
+            iconColor: "text-orange-500",
+          },
+          {
+            label: "NSS",
+            value: summary?.nssPersonnel ?? 0,
+            bg: "bg-gradient-to-r from-emerald-100 to-emerald-200",
+            icon: Users,
+            iconColor: "text-emerald-600",
+          },
+          {
+            label: "Interns",
+            value: summary?.interns ?? 0,
+            bg: "bg-gradient-to-r from-yellow-100 to-yellow-200",
+            icon: Users,
+            iconColor: "text-yellow-600",
+          },
+        ].map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={idx}
+              className="bg-card border rounded-xl p-4 flex items-center justify-between bg-gradient-to-br hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+            >
+              <div className="flex flex-col gap-1 bg-grad">
+                <p className="text-sm text-gray-500">{card.label}</p>
+                <h2 className="font-bold text-2xl sm:text-3xl">
+                  {summaryLoading ? "…" : card.value}
+                </h2>
+              </div>
+              <div
+                className={`p-3 rounded-full flex items-center justify-center ${card.bg} bg-opacity-50 hover:scale-110 transition-transform duration-300`}
+              >
+                <Icon size={28} className={card.iconColor} />
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       {/* EMPLOYEE TABLE */}
