@@ -135,7 +135,6 @@ export default function HR() {
   const paginatedEmployees = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
     const slice = filteredEmployees.slice(start, start + pageSize);
-    console.log("Paginated employees:", slice);
     return slice;
   }, [filteredEmployees, pageNumber]);
 
@@ -443,7 +442,7 @@ export default function HR() {
                                 ? "bg-green-200 text-green-800 border-green-600"
                                 : employee.status === "Leave"
                                 ? "bg-blue-200 text-blue-800 border-blue-600"
-                                : "bg-red-200 text-red-800 border-red-600"
+                                : "bg-green-200 text-green-800 border-green-600"
                             }`}
                           >
                             {employee.status || "Active"}

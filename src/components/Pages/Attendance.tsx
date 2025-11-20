@@ -17,7 +17,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export default function Attendance() {
   const {
@@ -28,36 +28,28 @@ export default function Attendance() {
     setSearchText,
     statusFilter,
     setStatusFilter,
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    pageNumber,
+    setPageNumber,
+    pageSize,
+    totalPages,
+    refreshAttendance,
   } = useAttendance();
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // --- Client-side: apply status filter (backend doesn't support status param)
+  const filteredByStatus = useMemo(() => {
+    if (statusFilter === "all") return attendance;
+    return attendance.filter((r) => r.status === statusFilter);
+  }, [attendance, statusFilter]);
 
-  const filteredAttendance = attendance.filter((row) => {
-    const matchesStatus =
-      statusFilter === "all" ? true : row.status === statusFilter;
-
-    const matchesSearch = row.employeeName
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
-
-    const withinDateRange =
-      (!startDate || new Date(row.date) >= new Date(startDate)) &&
-      (!endDate || new Date(row.date) <= new Date(endDate));
-
-    return matchesStatus && matchesSearch && withinDateRange;
-  });
-
-  const [pageNumber, setPageNumber] = useState(1);
-  const pageSize = 20; // rows per page
-
-  // --- Pagination ---
-  const totalPages = Math.ceil(filteredAttendance.length / pageSize);
+  // --- Client-side: pagination slice
   const paginatedAttendance = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
-    const slice = filteredAttendance.slice(start, start + pageSize);
-    return slice;
-  }, [filteredAttendance, pageNumber]);
+    return filteredByStatus.slice(start, start + pageSize);
+  }, [filteredByStatus, pageNumber, pageSize]);
 
   const goToPage = (num: number) => {
     if (num < 1 || num > totalPages) return;
@@ -67,32 +59,18 @@ export default function Attendance() {
 
   const getVisiblePages = () => {
     const pages: (number | "...")[] = [];
+    const curr = pageNumber;
+    const last = totalPages;
 
-    // Always show first page
     pages.push(1);
+    if (curr > 3) pages.push("...");
 
-    // Left-side ellipsis
-    if (pageNumber > 3) {
-      pages.push("...");
-    }
+    const start = Math.max(2, curr - 1);
+    const end = Math.min(last - 1, curr + 1);
+    for (let i = start; i <= end; i++) pages.push(i);
 
-    // Pages around the current page: (pageNumber - 1, pageNumber, pageNumber + 1)
-    const start = Math.max(2, pageNumber - 1);
-    const end = Math.min(totalPages - 1, pageNumber + 1);
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    // Right-side ellipsis (if needed)
-    if (pageNumber < totalPages - 2) {
-      pages.push("...");
-    }
-
-    // Always show last page (if > 1)
-    if (totalPages > 1) {
-      pages.push(totalPages);
-    }
+    if (curr < last - 2) pages.push("...");
+    if (last > 1) pages.push(last);
 
     return pages;
   };
@@ -111,8 +89,13 @@ export default function Attendance() {
           <h1 className="text-3xl font-bold text-gray-900">Attendance</h1>
           <p className="text-gray-500">Track and manage employee attendance</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
-          <RefreshCw />
+
+        <div
+          onClick={() => refreshAttendance()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition cursor-pointer"
+        >
+          <RefreshCw className={loading ? "animate-spin" : ""} />
+          <span className="text-sm">Refresh</span>
         </div>
       </section>
 
@@ -134,7 +117,7 @@ export default function Attendance() {
           {
             title: "Late Arrivals",
             value: summary?.lateArrivals ?? 0,
-            desc: "After 9:00 AM",
+            desc: "After 8:00 AM",
             color: "text-amber-500",
           },
           {
@@ -163,7 +146,7 @@ export default function Attendance() {
           <div className="flex flex-col justify-between items-center gap-6">
             <div className="flex justify-between items-center w-full">
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
-                Today's Attendance
+                Attendance Records
               </h1>
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
                 <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 transition duration-300 hover:text-white">
@@ -176,6 +159,7 @@ export default function Attendance() {
                 </button>
               </div>
             </div>
+
             <div className="flex w-full justify-between items-center gap-2 pt-6 border-t">
               <div className="flex justify-between items-center gap-2">
                 <div className="flex justify-center items-center gap-1">
@@ -187,15 +171,9 @@ export default function Attendance() {
                       onChange={(e) => setStartDate(e.target.value)}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                     />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    ></svg>
                   </div>
                 </div>
+
                 <div className="flex justify-center items-center gap-1">
                   <p className="text-xs">to:</p>
                   <div className="relative">
@@ -205,13 +183,6 @@ export default function Attendance() {
                       onChange={(e) => setEndDate(e.target.value)}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                     />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    ></svg>
                   </div>
                 </div>
               </div>
@@ -227,25 +198,14 @@ export default function Attendance() {
                 />
               </div>
 
-              <div className="flex justify-between items-center gap-2">
-                <Select>
-                  <SelectTrigger className="pl-8 pr-4 w-[50%]">
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All today</SelectItem>
-                    <SelectItem value="Present">Present today</SelectItem>
-                    <SelectItem value="Late">Late today</SelectItem>
-                    <SelectItem value="Absent">Absent today</SelectItem>
-                  </SelectContent>
-                </Select>
-                {/* Status */}
+              <div className="flex justify-between items-center gap-2 w-[40%]">
+                {/* Single status select (no duplicates) */}
                 <Select onValueChange={setStatusFilter}>
-                  <SelectTrigger className="pl-8 pr-4 w-[50%]">
+                  <SelectTrigger className="pl-8 pr-4 w-full">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All records</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="Present">Present</SelectItem>
                     <SelectItem value="Late">Late</SelectItem>
                     <SelectItem value="Absent">Absent</SelectItem>

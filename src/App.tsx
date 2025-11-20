@@ -20,6 +20,7 @@ import { EmployeeProvider } from "./context/EmployeeContext";
 
 // Assets
 import Access from "./assets/access_denied-removebg-preview.png";
+import { AttendanceProvider } from "./context/AttendanceContext";
 
 export const App = () => {
   return (
@@ -44,7 +45,14 @@ export const App = () => {
           >
             <Route index element={<Dashboard />} />
             <Route path="hr" element={<HR />} />
-            <Route path="attendance" element={<Attendance />} />
+            <Route
+              path="attendance"
+              element={
+                <AttendanceProvider>
+                  <Attendance />
+                </AttendanceProvider>
+              }
+            />
             <Route path="payroll" element={<Payroll />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
