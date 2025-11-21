@@ -114,7 +114,8 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
           Add Employee
         </button>
       </DialogTrigger>
-      <DialogContent className="space-y-6 h-[90%] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 md:max-w-2xl lg:max-w-3xl">
+
+      <DialogContent className="space-y-6 h-[90%] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 md:max-w-2xl lg:max-w-3xl ">
         <DialogHeader className="flex space-y-2">
           <DialogTitle>Add New Employee</DialogTitle>
           <DialogDescription>
@@ -149,9 +150,11 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                           <SelectValue placeholder="Select title" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="mr">Mr.</SelectItem>
-                          <SelectItem value="mrs">Mrs.</SelectItem>
-                          <SelectItem value="miss">Miss</SelectItem>
+                          <SelectItem value="Mr.">Mr.</SelectItem>
+                          <SelectItem value="Mrs.">Mrs.</SelectItem>
+                          <SelectItem value="Miss">Miss</SelectItem>
+                          <SelectItem value="Dr.">Dr</SelectItem>
+                          <SelectItem value="Eng.">Eng.</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -276,14 +279,7 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                    ></svg>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -300,7 +296,7 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                       console.log("address:", e.target.value);
                     }}
                     autoComplete="off"
-                    className="w-full rounded-md border bg-white h-9 px-3 py-2 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
+                    className="w-full rounded-md border bg-white h-10 px-3 py-2 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                   />
                 </div>
               </div>
@@ -393,14 +389,7 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="1.5"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                      ></svg>
                     </div>
                   </div>
 
@@ -418,7 +407,7 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                       >
                         <SelectTrigger
                           id="emp-type"
-                          className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                          className="w-full border rounded-md px-3 py-2 h-10 text-sm"
                         >
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
@@ -484,9 +473,9 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Biweekly">Bi-Weekly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
                         <SelectItem value="Annually">Annualy</SelectItem>
                       </SelectContent>
                     </Select>
@@ -502,9 +491,7 @@ export const AddEmployee: React.FC<AddEmployeeProps> = ({
               <div>
                 <p className="text-muted-foreground">
                   Full Name:{" "}
-                  <span className="text-gray-800">{`${uppercaseTitle(
-                    title
-                  )} ${firstName} ${otherName} ${surname}`}</span>
+                  <span className="text-gray-800">{`${title} ${firstName} ${otherName} ${surname}`}</span>
                 </p>
               </div>
               <div>

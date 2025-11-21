@@ -129,7 +129,7 @@ export default function Attendance() {
         ].map((item, i) => (
           <div
             key={i}
-            className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-md transition"
+            className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-xl transition-shadow duration-300 cursor-pointer"
           >
             <h3 className="text-gray-600 font-medium mb-1">{item.title}</h3>
             <p className={`text-3xl font-semibold ${item.color}`}>
@@ -148,6 +148,7 @@ export default function Attendance() {
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
                 Attendance Records
               </h1>
+
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
                 <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 transition duration-300 hover:text-white">
                   <Download className="w-4 h-4" />
@@ -198,11 +199,11 @@ export default function Attendance() {
                 />
               </div>
 
-              <div className="flex justify-between items-center gap-2 w-[40%]">
+              <div className="flex justify-between items-center gap-2">
                 {/* Single status select (no duplicates) */}
                 <Select onValueChange={setStatusFilter}>
                   <SelectTrigger className="pl-8 pr-4 w-full">
-                    <SelectValue placeholder="All Statuses" />
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>

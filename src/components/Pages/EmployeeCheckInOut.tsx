@@ -112,7 +112,7 @@ const CheckInOut = () => {
       const { lastCheckIn, lastCheckOut } = storedTimestamps[id];
       initialMap[id] = {
         id,
-        fullName: "", // will be filled when employee is searched
+        fullName: "",
         jobPosition: "N/A",
         status: lastCheckIn ? "in" : "out",
         lastCheckIn,

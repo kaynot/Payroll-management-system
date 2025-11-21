@@ -71,5 +71,16 @@ export const useCrudFunc = () => {
     }
   };
 
-  return [postData, updateData, patchData, fetchData] as const;
+  const deleteData = async (url: string, cusHeader?: any) => {
+    try {
+      const res = await axios.delete(`http://localhost:7002/api/${url}`, {
+        headers: getHeaders(cusHeader),
+      });
+      return res;
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
+  return [postData, updateData, patchData, fetchData, deleteData] as const;
 };
