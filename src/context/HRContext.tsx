@@ -30,7 +30,7 @@ export interface EmployeeSummary {
   totalEmployee: number;
   fullTime: number;
   partTime: number;
-  nss: number;
+  nssPersonnel: number;
   interns: number;
 }
 

@@ -40,16 +40,32 @@ export default function Attendance() {
   } = useAttendance();
 
   // --- Client-side: apply status filter (backend doesn't support status param)
-  const filteredByStatus = useMemo(() => {
-    if (statusFilter === "all") return attendance;
-    return attendance.filter((r) => r.status === statusFilter);
-  }, [attendance, statusFilter]);
+  const filteredAttendance = useMemo(() => {
+    return attendance.filter((r) => {
+      // --- Status Filter ---
+      const statusMatch = statusFilter === "all" || r.status === statusFilter;
+
+      // --- Date Filter ---
+      let dateMatch = true;
+      const recordDate = new Date(r.date); // assuming r.date is ISO string or Date-compatible
+      if (startDate) {
+        const start = new Date(startDate);
+        dateMatch = recordDate >= start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        dateMatch = dateMatch && recordDate <= end;
+      }
+
+      return statusMatch && dateMatch;
+    });
+  }, [attendance, statusFilter, startDate, endDate]);
 
   // --- Client-side: pagination slice
   const paginatedAttendance = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
-    return filteredByStatus.slice(start, start + pageSize);
-  }, [filteredByStatus, pageNumber, pageSize]);
+    return filteredAttendance.slice(start, start + pageSize);
+  }, [filteredAttendance, pageNumber, pageSize]);
 
   const goToPage = (num: number) => {
     if (num < 1 || num > totalPages) return;

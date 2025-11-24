@@ -202,7 +202,7 @@ export default function HR() {
           },
           {
             label: "Nss",
-            value: summary?.nss ?? 0,
+            value: summary?.nssPersonnel ?? 0,
             bg: "bg-gradient-to-r from-orange-100 to-orange-200",
             icon: Users,
             iconColor: "text-orange-500",

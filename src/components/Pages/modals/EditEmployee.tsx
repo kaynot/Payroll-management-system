@@ -334,13 +334,13 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
           <button
             disabled={loading}
             onClick={handleSaveChanges}
-            className="bg-primary text-white font-semibold py-2 px-6 rounded-full hover:bg-primary/95 transition"
+            className="bg-primary text-white font-semibold py-2 px-6 rounded-full hover:bg-primary/95 transition w-full"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>
           <button
             onClick={onClose}
-            className="bg-muted text-gray-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition"
+            className="bg-muted text-gray-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-200 transition w-full"
           >
             Cancel
           </button>
