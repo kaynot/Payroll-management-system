@@ -12,7 +12,7 @@ export const GetDataFunc = async (url: string, params?: any) => {
 
     // Make the GET request
     const response = await axios.get(
-      `http://localhost:7002/api/${cleanUrl}`,
+      `https://localhost:7003/api/${cleanUrl}`,
       requestConfig(params)
     );
 

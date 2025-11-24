@@ -107,30 +107,37 @@ export const Payroll = () => {
             <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl">
               January 2025 Payroll
             </h1>
-            <div className="bg-muted border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[50%]">
+            <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[30%]">
               <Search size={16} color="#9ca3af" />
               <input
                 type="text"
                 name="search-emp"
                 id="search-emp"
                 placeholder="Search by name, ID, or department..."
-                className="bg-muted text-muted-foreground text-sm outline-none w-full"
+                className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
               />
             </div>
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="employees">Employees</SelectItem>
-                <SelectItem value="nss">NSS Personnel</SelectItem>
-                <SelectItem value="interns">Interns</SelectItem>
-                <SelectItem value="others">Others</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="py-1 px-2 border border-gray-300 rounded-lg">
-              <input type="month" name="month" id="month" />
+            <div className="flex justify-between items-center gap-2">
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="employees">Employees</SelectItem>
+                  <SelectItem value="nss">NSS Personnel</SelectItem>
+                  <SelectItem value="interns">Interns</SelectItem>
+                  <SelectItem value="others">Others</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="border border-border rounded-full">
+                <input
+                  type="month"
+                  name="month"
+                  id="month"
+                  className="px-4 py-1 rounded-full text-muted-foreground"
+                />
+              </div>
             </div>
           </div>
 
@@ -142,19 +149,25 @@ export const Payroll = () => {
                     Name
                   </th>
                   <th className="h-12 px-4 text-left font-medium text-muted-foreground">
-                    ID
+                    Role
                   </th>
                   <th className="h-12 px-4 text-left font-medium text-muted-foreground">
                     Category
                   </th>
                   <th className="h-12 px-4 text-left font-medium text-muted-foreground">
-                    Department
+                    Base Salary
                   </th>
                   <th className="h-12 px-4 text-left font-medium text-muted-foreground">
-                    Salary
+                    Allowances
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Deductions
+                  </th>
+                  <th className="h-12 px-4 text-left font-medium text-muted-foreground">
+                    Net Salary
                   </th>
                   <th className="h-12 px-4 text-center font-medium text-muted-foreground">
-                    Status
+                    Paid
                   </th>
                   <th className="h-12 px-4 text-center font-medium text-muted-foreground">
                     Actions
@@ -165,17 +178,58 @@ export const Payroll = () => {
               <tbody className="border-0">
                 <tr className="border-b transition-colors hover:bg-muted/40">
                   <td className="p-4 font-semibold">Kwame Mensah</td>
-                  <td className="p-4">EMP001</td>
+                  <td className="p-4">Mobile App Dev</td>
                   <td className="p-4 flex justify-start">
                     <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
-                      Employee
+                      Full-time
                     </p>
                   </td>
-                  <td className="p-4">IT</td>
-                  <td className="p-4">GH₵ 7,200</td>
+                  <td className="p-4">GH₵ 3,500</td>
+                  <td className="p-4">GH₵ 500</td>
+                  <td className="p-4">GH₵ 420</td>
+                  <td className="p-4">GH₵ 3,580</td>
                   <td className="p-4 flex justify-center">
                     <p className="py-1 px-4 rounded-full text-xs border font-medium bg-green-200 text-green-800 border-green-600">
-                      Active
+                      Paid
+                    </p>
+                  </td>
+
+                  <td className="p-4 text-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="hover:bg-primary hover:rounded-md hover:text-primary-foreground transition p-1">
+                          <EllipsisVertical />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <Eye /> View Employee
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <SquarePen /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-500">
+                          <Trash2 /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+                <tr className="border-b transition-colors hover:bg-muted/40">
+                  <td className="p-4 font-semibold">Kwaku Opoku</td>
+                  <td className="p-4">Dev Opps Engineer</td>
+                  <td className="p-4 flex justify-start">
+                    <p className="bg-emerald-100 py-1 px-4 rounded-full text-xs text-emerald-600 border border-emerald-600 font-medium">
+                      Full-time
+                    </p>
+                  </td>
+                  <td className="p-4">GH₵ 3,500</td>
+                  <td className="p-4">GH₵ 500</td>
+                  <td className="p-4">GH₵ 420</td>
+                  <td className="p-4">GH₵ 3,580</td>
+                  <td className="p-4 flex justify-center">
+                    <p className="py-1 px-4 rounded-full text-xs border font-medium bg-blue-200 text-blue-800 border-blue-600">
+                      Pending
                     </p>
                   </td>
 

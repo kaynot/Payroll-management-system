@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCrudFunc } from "../hooks/crud";
 import { Button } from "../ui/button";
@@ -19,6 +19,7 @@ import { Eye, EyeOff } from "lucide-react";
 export default function SignIn() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [posting] = useCrudFunc();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,13 +29,10 @@ export default function SignIn() {
   });
 
   const updateState = (key: string, value: any) => {
-    setForm((prev: any) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleLogin = async (e: any) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -48,16 +46,19 @@ export default function SignIn() {
       const message = response?.data?.message?.toLowerCase() || "";
 
       if (status === 200) {
-        const userData = response?.data?.data?.user;
-        login(userData);
+        const userData = response.data.data.user;
+        const token = response.data.data.token.token;
+
+        login(userData, token); // ✅ Correctly store user & token
 
         toast.success("Login successful! Redirecting...", {
-          description: `Welcome back, ${userData?.firstName || "User"} 👋`,
+          description: `Welcome back, ${userData.firstName || "User"} 👋`,
           duration: 3000,
         });
 
-        // Redirect to dashboard after login
-        setTimeout(() => navigate("/dashboard"), 1500);
+        // Redirect to attempted page or dashboard
+        const from = (location.state as any)?.from?.pathname || "/dashboard";
+        setTimeout(() => navigate(from, { replace: true }), 1000);
       } else if (message.includes("invalid") || message.includes("incorrect")) {
         toast.error("Invalid username or password!");
       } else if (message.includes("not found")) {
@@ -68,7 +69,6 @@ export default function SignIn() {
     } catch (error: any) {
       console.error("Login error:", error);
       const errMsg = error.response?.data?.message?.toLowerCase() || "";
-
       if (errMsg.includes("invalid credentials")) {
         toast.error("Invalid username or password.");
       } else {
@@ -111,9 +111,7 @@ export default function SignIn() {
                 type="text"
                 placeholder="Enter your username or email"
                 value={form.emailOrUsername}
-                onChange={(e: any) =>
-                  updateState("emailOrUsername", e.target.value)
-                }
+                onChange={(e) => updateState("emailOrUsername", e.target.value)}
                 required
                 className="py-6 px-4 border focus:border-primary transition-colors"
               />

@@ -5,14 +5,14 @@ export interface Employee {
   id: string | number;
   title?: string;
   firstName: string;
-  lastName: string;
   otherNames?: string;
+  lastName: string;
   email: string;
   phone: string;
   dob?: string;
   address?: string;
   department: string;
-  position: string;
+  jobPosition: string;
   hireDate?: string;
   employmentType: string;
   manager?: string;

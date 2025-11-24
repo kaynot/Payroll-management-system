@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,10 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../ui/dialog";
-
 import { Input } from "../../ui/input";
-import { useState } from "react";
-
 import {
   Select,
   SelectContent,
@@ -19,11 +16,19 @@ import {
   SelectValue,
 } from "../../ui/select";
 import { Plus } from "lucide-react";
-
 import { useCrudFunc } from "../../hooks/crud";
 import useFetch from "../../hooks/useFetch";
+import { useEmployees } from "../../../context/EmployeeContext";
 
-export const AddEmployee = () => {
+import { uppercaseTitle } from "../../../utils/format";
+interface AddEmployeeProps {
+  onEmployeeAdded?: () => void;
+}
+
+export const AddEmployee: React.FC<AddEmployeeProps> = ({
+  onEmployeeAdded,
+}) => {
+  const { employees, setEmployees } = useEmployees();
   const [title, setTitle] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [surname, setSurname] = useState<string>("");
@@ -38,6 +43,10 @@ export const AddEmployee = () => {
   const [employmentType, setEmploymentType] = useState<string>("");
   const [salary, setSalary] = useState<string>("");
   const [payFrequency, setPayFrequency] = useState<string>("");
+  const [open, setOpen] = useState(false);
+  const [departments, setDepartments] = useState<
+    { dptId: number; name: string }[]
+  >([]);
 
   const EMPLOYMENT_TYPES = [
     { label: "Full-time", value: "FullTime" },
@@ -46,20 +55,8 @@ export const AddEmployee = () => {
     { label: "Internship", value: "Intern" },
   ];
 
-  interface Department {
-    dptId: number;
-    name: string;
-  }
-
-  const [open, setOpen] = useState(false);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-
   const [postData] = useCrudFunc();
-  const [departmentData, department_loading, department_error] = useFetch(
-    "Department/departments"
-  );
-  console.log("fetchDep", departmentData);
+  const [departmentData] = useFetch("Department/departments");
 
   React.useEffect(() => {
     if (departmentData) {
@@ -73,7 +70,6 @@ export const AddEmployee = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const selectedDept = departments.find(
       (d) => d.dptId.toString() === departmentId
     );
@@ -91,7 +87,7 @@ export const AddEmployee = () => {
       PhoneNumber: phoneNumber,
       DateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
       Address: address,
-      DepartmentId: departmentId, // number
+      DepartmentId: departmentId,
       JobPosition: jobPosition,
       HireDate: hireDate ? new Date(hireDate).toISOString() : null,
       EmploymentType: employmentType,
@@ -101,8 +97,9 @@ export const AddEmployee = () => {
 
     try {
       const res = await postData("Employee/employee", payload);
-      console.log("Employee added:", res.data);
+      setEmployees((prev) => [...prev, res.data]);
       setOpen(false);
+      onEmployeeAdded?.();
     } catch (err) {
       console.error("Error adding employee:", err);
       alert("Failed to add employee. Check console for details.");
@@ -117,7 +114,8 @@ export const AddEmployee = () => {
           Add Employee
         </button>
       </DialogTrigger>
-      <DialogContent className="space-y-6 h-[90%] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 md:max-w-2xl lg:max-w-3xl">
+
+      <DialogContent className="space-y-6 h-[90%] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 md:max-w-2xl lg:max-w-3xl ">
         <DialogHeader className="flex space-y-2">
           <DialogTitle>Add New Employee</DialogTitle>
           <DialogDescription>
@@ -152,9 +150,11 @@ export const AddEmployee = () => {
                           <SelectValue placeholder="Select title" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="mr">Mr.</SelectItem>
-                          <SelectItem value="mrs">Mrs.</SelectItem>
-                          <SelectItem value="miss">Miss</SelectItem>
+                          <SelectItem value="Mr.">Mr.</SelectItem>
+                          <SelectItem value="Mrs.">Mrs.</SelectItem>
+                          <SelectItem value="Miss">Miss</SelectItem>
+                          <SelectItem value="Dr.">Dr</SelectItem>
+                          <SelectItem value="Eng.">Eng.</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -279,19 +279,12 @@ export const AddEmployee = () => {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                    ></svg>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label htmlFor="address" className="text-sm font-semibold">
-                    Address
+                    Address *
                   </label>
                   <Input
                     type="text"
@@ -303,6 +296,7 @@ export const AddEmployee = () => {
                       console.log("address:", e.target.value);
                     }}
                     autoComplete="off"
+                    className="w-full rounded-md border bg-white h-10 px-3 py-2 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                   />
                 </div>
               </div>
@@ -395,14 +389,7 @@ export const AddEmployee = () => {
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="1.5"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                      ></svg>
                     </div>
                   </div>
 
@@ -420,7 +407,7 @@ export const AddEmployee = () => {
                       >
                         <SelectTrigger
                           id="emp-type"
-                          className="w-full border rounded-md px-3 py-2 h-9 text-sm"
+                          className="w-full border rounded-md px-3 py-2 h-10 text-sm"
                         >
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
@@ -486,9 +473,9 @@ export const AddEmployee = () => {
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Biweekly">Bi-Weekly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
                         <SelectItem value="Annually">Annualy</SelectItem>
                       </SelectContent>
                     </Select>
@@ -550,3 +537,6 @@ export const AddEmployee = () => {
     </Dialog>
   );
 };
+function onEmployeeAdded() {
+  throw new Error("Function not implemented.");
+}

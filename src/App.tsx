@@ -9,16 +9,19 @@ import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import Attendance from "./components/Pages/Attendance";
 import Payroll from "./components/Pages/Payroll";
-import EmployeeCheckin from "./components/Pages/EmployeeCheckIn";
+import EmployeeCheckin from "./components/Pages/EmployeeCheckInOut";
 import SignUp from "./components/Pages/SignUp";
 
 // Layout & Auth
 import DashboardLayout from "./components/template/sidenav";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { EmployeeProvider } from "./context/EmployeeContext";
 
 // Assets
 import Access from "./assets/access_denied-removebg-preview.png";
+import { AttendanceProvider } from "./context/AttendanceContext";
+import { HRProvider } from "./context/HRContext";
 
 export const App = () => {
   return (
@@ -28,20 +31,37 @@ export const App = () => {
           {/* Public Routes */}
           <Route path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/employee-checkin" element={<EmployeeCheckin />} />
+          <Route path="/employee-checkInOut" element={<EmployeeCheckin />} />
 
           {/* Protected Dashboard Routes */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardLayout />
+                <EmployeeProvider>
+                  <DashboardLayout />
+                </EmployeeProvider>
               </ProtectedRoute>
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="hr" element={<HR />} />
-            <Route path="attendance" element={<Attendance />} />
+            <Route
+              path="hr"
+              element={
+                <HRProvider>
+                  <HR />
+                </HRProvider>
+              }
+            />
+
+            <Route
+              path="attendance"
+              element={
+                <AttendanceProvider>
+                  <Attendance />
+                </AttendanceProvider>
+              }
+            />
             <Route path="payroll" element={<Payroll />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
