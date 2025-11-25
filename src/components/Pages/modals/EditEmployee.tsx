@@ -199,7 +199,7 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="lg:max-w-2xl md:max-w-lg sm:max-w-md w-full gap-8">
+      <DialogContent className="space-y-6 h-[90%] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 md:max-w-2xl lg:max-w-3xl">
         <DialogHeader className="space-y-2 flex justify-center items-center">
           <DialogTitle>Edit Employee Details</DialogTitle>
           <DialogDescription>
@@ -208,7 +208,7 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 ">
           {/* Employee Header */}
           <div className="bg-muted flex items-center gap-4 p-4 rounded-2xl">
             <img

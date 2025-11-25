@@ -21,7 +21,6 @@ import {
 
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
-import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 export const Dashboard = () => {

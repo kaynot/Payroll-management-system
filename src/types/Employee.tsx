@@ -1,4 +1,5 @@
 export interface Employee {
+  fullName: string;
   name: any;
   image: string;
   joinDate: string | number | readonly string[] | undefined;

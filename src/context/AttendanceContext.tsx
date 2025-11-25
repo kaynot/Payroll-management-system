@@ -24,6 +24,13 @@ export interface AttendanceSummary {
   absent: number;
 }
 
+export interface ManualAttendanceRecord {
+  employeeId: string;
+  checkIn?: string;
+  checkOut?: string;
+  date: string;
+}
+
 interface AttendanceContextType {
   attendance: AttendanceRecord[];
   summary: AttendanceSummary | null;
@@ -46,6 +53,8 @@ interface AttendanceContextType {
   setEndDate: (date: string) => void;
 
   refreshAttendance: () => Promise<void>;
+
+  submitManualAttendance: (records: ManualAttendanceRecord[]) => Promise<void>;
 }
 
 // ------------------ Context ------------------
@@ -77,7 +86,6 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // When backend doesn't return pagination metadata, we fetch a large page to get all matching rows.
   const FETCH_ALL_SIZE = 10000;
 
   // ------------------ Helpers ------------------
@@ -88,10 +96,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
     const totalHours =
       checkInDate && checkOutDate
-        ? (
-            (checkOutDate.getTime() - checkInDate.getTime()) /
-            (1000 * 60 * 60)
-          ).toFixed(2)
+        ? ((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60)).toFixed(2)
         : "-";
 
     const isLate = checkInDate ? checkInDate.getHours() >= 8 : false;
@@ -103,16 +108,10 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
       department: record.department ?? "N/A",
       date: record.date ? record.date.split("T")[0] : "",
       checkIn: checkInDate
-        ? checkInDate.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+        ? checkInDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : "-",
       checkOut: checkOutDate
-        ? checkOutDate.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+        ? checkOutDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : "-",
       totalHours,
       status,
@@ -122,14 +121,12 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   // ------------------ Fetch Attendance ------------------
 
   const refreshAttendance = async () => {
-    // If there's no token, redirect to login (preserve previous behavior)
     if (!token) return navigate("/", { replace: true });
 
     setLoading(true);
     try {
       setFetchError(null);
 
-      // Request backend for all matching records (large page size)
       const res = await fetchAttendance({
         SearchText: searchText || undefined,
         PageNumber: 1,
@@ -138,25 +135,18 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
         EndDate: endDate || undefined,
       });
 
-      // backend returns { message, data: [...] , statusCode }
       const raw = res?.data?.data ?? res?.data ?? [];
-
-      // Format and store all fetched records
       const formatted = Array.isArray(raw) ? raw.map(formatRecord) : [];
       setAttendance(formatted);
 
-      // Recompute totalPages for client-side pagination
       setTotalPages(Math.max(1, Math.ceil(formatted.length / pageSize)));
 
-      // Fetch summary endpoint separately
       try {
         const summaryRes = await fetchSummary();
-        // summaryRes structure: { message, data: {...}, statusCode }
         const summaryData = summaryRes?.data?.data ?? summaryRes?.data ?? null;
         setSummary(summaryData);
       } catch (sErr) {
         console.error("Failed to fetch summary:", sErr);
-        // keep previous summary if any (or set null)
         setSummary(null);
       }
 
@@ -169,10 +159,39 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Auto-refresh anytime filters change
+  // ------------------ Manual Attendance Submission ------------------
+
+  const submitManualAttendance = async (records: ManualAttendanceRecord[]) => {
+    if (!token) return navigate("/", { replace: true });
+    if (!records || records.length === 0) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:7002/api/Attendance/manual", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(records),
+      });
+
+      if (!res.ok) throw new Error(`Failed to submit manual attendance: ${res.statusText}`);
+
+      // Refresh after submission
+      await refreshAttendance();
+    } catch (err) {
+      console.error("submitManualAttendance error:", err);
+      setFetchError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ------------------ Effects ------------------
+
   useEffect(() => {
     if (user && token) {
-      // Reset to first page on filter change
       setPageNumber(1);
       refreshAttendance();
     }
@@ -180,15 +199,12 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const filtered =
-      statusFilter === "all"
-        ? attendance
-        : attendance.filter((r) => r.status === statusFilter);
-
+      statusFilter === "all" ? attendance : attendance.filter((r) => r.status === statusFilter);
     setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
-    if (pageNumber > Math.max(1, Math.ceil(filtered.length / pageSize))) {
-      setPageNumber(1);
-    }
+    if (pageNumber > Math.max(1, Math.ceil(filtered.length / pageSize))) setPageNumber(1);
   }, [statusFilter, attendance]);
+
+  // ------------------ Provider ------------------
 
   return (
     <AttendanceContext.Provider
@@ -210,6 +226,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
         setStartDate,
         setEndDate,
         refreshAttendance,
+        submitManualAttendance, // expose manual attendance function
       }}
     >
       {children}
@@ -221,8 +238,6 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAttendance = () => {
   const context = useContext(AttendanceContext);
-  if (!context) {
-    throw new Error("useAttendance must be used within AttendanceProvider");
-  }
+  if (!context) throw new Error("useAttendance must be used within AttendanceProvider");
   return context;
 };
