@@ -119,7 +119,7 @@ export default function Attendance() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           {
-            title: "Total Employees",
+            title: "Total Attendance",
             value: summary?.totalEmployees ?? 0,
             desc: `Out of ${summary?.totalEmployees ?? 0} employees`,
             color: "text-green-600",
@@ -185,7 +185,10 @@ export default function Attendance() {
                     <input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      onChange={(e) => {
+
+                        setStartDate(e.target.value)
+                      }}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                     />
                   </div>
@@ -197,7 +200,9 @@ export default function Attendance() {
                     <input
                       type="date"
                       value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      onChange={(e) => { 
+                        console.log(e.target.value) 
+                        setEndDate(e.target.value) }}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
                     />
                   </div>
@@ -291,13 +296,12 @@ export default function Attendance() {
                         <td className="p-4">{row.checkOut}</td>
                         <td className="p-4 text-center">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              row.status === "Late"
-                                ? "bg-amber-100 text-amber-700"
-                                : row.status === "Absent"
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${row.status === "Late"
+                              ? "bg-amber-100 text-amber-700"
+                              : row.status === "Absent"
                                 ? "bg-red-100 text-red-700"
                                 : "bg-indigo-100 text-indigo-700"
-                            }`}
+                              }`}
                           >
                             {row.status}
                           </span>

@@ -34,7 +34,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
             firstName: e.firstName,
             lastName: e.surname,
             otherNames: e.otherName,
-            fullName: e.fullName,
+            fullName: `${e.firstName} ${e.surname}`.trim(), // <-- populate fullName here
             email: e.email,
             phone: e.phoneNumber,
             dob: e.dateOfBirth,

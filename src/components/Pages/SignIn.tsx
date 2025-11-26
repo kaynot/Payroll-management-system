@@ -33,51 +33,85 @@ export default function SignIn() {
   };
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      const response = await posting("Auth/Login", {
-        userNameOrEmail: form.emailOrUsername.trim(),
-        password: form.password.trim(),
+  try {
+    const response = await posting("Auth/Login", {
+      userNameOrEmail: form.emailOrUsername.trim(),
+      password: form.password.trim(),
+    });
+
+    const { statusCode, message, data } = response?.data || {};
+    const msg = message?.toLowerCase() || "";
+
+    // SUCCESS
+    if (statusCode === 200 && data?.user && data?.token?.token) {
+      const user = data.user;
+      const token = data.token.token;
+
+      login(user, token);
+
+      toast.success("Login successful!", {
+        description: `Welcome back, ${user.firstName || "User"} 👋`,
       });
 
-      const status = response?.data?.statusCode;
-      const message = response?.data?.message?.toLowerCase() || "";
+      const redirectTo =
+        (location.state as any)?.from?.pathname || "/dashboard";
 
-      if (status === 200) {
-        const userData = response.data.data.user;
-        const token = response.data.data.token.token;
-
-        login(userData, token); // ✅ Correctly store user & token
-
-        toast.success("Login successful! Redirecting...", {
-          description: `Welcome back, ${userData.firstName || "User"} 👋`,
-          duration: 3000,
-        });
-
-        // Redirect to attempted page or dashboard
-        const from = (location.state as any)?.from?.pathname || "/dashboard";
-        setTimeout(() => navigate(from, { replace: true }), 1000);
-      } else if (message.includes("invalid") || message.includes("incorrect")) {
-        toast.error("Invalid username or password!");
-      } else if (message.includes("not found")) {
-        toast.error("User not found! Please register first.");
-      } else {
-        toast.error(response?.data?.message || "Login failed. Try again.");
-      }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      const errMsg = error.response?.data?.message?.toLowerCase() || "";
-      if (errMsg.includes("invalid credentials")) {
-        toast.error("Invalid username or password.");
-      } else {
-        toast.error("Something went wrong. Please try again later.");
-      }
-    } finally {
-      setIsLoading(false);
+      setTimeout(() => navigate(redirectTo, { replace: true }), 1000);
+      return;
     }
-  };
+
+    // HANDLE EXPECTED LOGIN FAILURES
+    const authFailureTexts = [
+      "wrong username or password",
+      "invalid",
+      "incorrect",
+      "unauthorized",
+      "credentials",
+    ];
+
+    if (authFailureTexts.some((m) => msg.includes(m)) || statusCode === 401) {
+      toast.error("Invalid username or password.");
+      return;
+    }
+
+    // USER NOT FOUND
+    if (msg.includes("not found")) {
+      toast.error("User not found. Please register first.");
+      return;
+    }
+
+    // OTHER API ERRORS
+    toast.error(message || "Login failed. Try again.");
+  } catch (error: any) {
+    console.error("Login error:", error);
+
+    const backendMsg = error.response?.data?.message?.toLowerCase() || "";
+
+    const authFailureTexts = [
+      "wrong username or password",
+      "invalid",
+      "incorrect",
+      "credentials",
+      "unauthorized",
+    ];
+
+    if (
+      authFailureTexts.some((m) => backendMsg.includes(m)) ||
+      error.response?.status === 401
+    ) {
+      toast.error("Invalid username or password.");
+    } else {
+      toast.error(
+        error.response?.data?.message || "Something went wrong. Please try again later."
+      );
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <AuthLayout>

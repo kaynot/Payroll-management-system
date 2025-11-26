@@ -14,7 +14,7 @@ import AuthLayout from "../Auth/AuthLayout";
 import AuthLogo from "../Auth/AuthLogo";
 import Loader from "../Auth/Loader";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react"; // 👈 Added
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function SignUp() {
 
       if (response?.status === 200 || response?.status === 201) {
         toast.success("🎉 Account created successfully!");
-        setTimeout(() => navigate("/login"), 1500);
+        setTimeout(() => navigate("/"), 1500);
       } else if (message.includes("email")) {
         toast.error("Email already exists! Try a different one.");
       } else if (message.includes("username") || message.includes("userName")) {

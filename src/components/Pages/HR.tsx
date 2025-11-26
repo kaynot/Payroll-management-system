@@ -201,7 +201,7 @@ export default function HR() {
             iconColor: "text-orange-500",
           },
           {
-            label: "Nss",
+            label: "NSS Personnel",
             value: summary?.nssPersonnel ?? 0,
             bg: "bg-gradient-to-r from-orange-100 to-orange-200",
             icon: Users,
