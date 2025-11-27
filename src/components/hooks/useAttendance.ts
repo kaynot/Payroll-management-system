@@ -9,6 +9,25 @@ export interface AttendanceFetchParams {
   EndDate?: string;
 }
 
+export interface RawAttendanceRecord {
+  id: number;
+  employeeId: number;
+  firstName?: string;
+  surname?: string;
+  department?: string;
+  date: string;              
+  checkIn?: string | null; 
+  checkOut?: string | null; 
+}
+
+export interface AttendanceSummary {
+  totalEmployees: number;
+  presentToday: number;
+  lateArrivals: number;
+  absent: number;
+}
+
+
 export const useAttendance = () => {
   const [postData, updateData, , fetchData] = useCrudFunc();
 

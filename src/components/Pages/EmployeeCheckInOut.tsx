@@ -299,14 +299,10 @@ const CheckInOut = () => {
         };
 
         setFoundEmployee(updatedEmployee);
-
-        // Update employee map so switching back keeps data
         setEmployeeMap((prev) => ({
           ...prev,
           [updatedEmployee.id]: updatedEmployee,
         }));
-
-        // Persist timestamps in localStorage
         setEmployeeTimestamps(updatedEmployee);
 
         toast.success(
@@ -315,14 +311,55 @@ const CheckInOut = () => {
             : "Checked out successfully!"
         );
 
-        // Set 1 min cooldown
         setCooldownExpiry(foundEmployee.id, now + 1 * 60 * 1000);
-      } else {
-        toast.error(response?.data?.message || "Attendance update failed");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Error during check-in/out");
+
+      // Handle Axios errors
+      if (err.response) {
+        if (err.response.status === 409) {
+          // Employee already checked in/out
+          const isCheckingIn = foundEmployee.status === "out";
+
+          // Update timestamps from server response if available
+          const timestamp = parseTimestamp(err.response, isCheckingIn);
+          const timestampStr =
+            typeof timestamp === "string" ? timestamp : timestamp.toISOString();
+
+          const updatedEmployee: Employee = {
+            ...foundEmployee,
+            status: isCheckingIn ? "in" : "out",
+            lastCheckIn: isCheckingIn
+              ? timestampStr
+              : foundEmployee.lastCheckIn,
+            lastCheckOut: !isCheckingIn
+              ? timestampStr
+              : foundEmployee.lastCheckOut,
+          };
+
+          setFoundEmployee(updatedEmployee);
+          setEmployeeMap((prev) => ({
+            ...prev,
+            [updatedEmployee.id]: updatedEmployee,
+          }));
+          setEmployeeTimestamps(updatedEmployee);
+
+          // Show explicit message
+          toast.error(
+            isCheckingIn
+              ? "Employee has already checked in!"
+              : "Employee has already checked out!"
+          );
+
+          // set a short cooldown to prevent spamming
+          setCooldownExpiry(foundEmployee.id, now + 10 * 1000); // 10 seconds
+        } else {
+          toast.error(err.response.data?.message || "Attendance update failed");
+        }
+      } else {
+        toast.error("Network or server error during check-in/out");
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -516,7 +553,7 @@ const CheckInOut = () => {
                     <Loader2 className="h-5 w-5 animate-spin" /> Processing...
                   </>
                 ) : remainingTime > 0 ? (
-                  `Wait ${remainingTime}s`
+                  `${remainingTime}s`
                 ) : foundEmployee?.status === "in" ? (
                   <>
                     <UserX className="h-5 w-5" /> Check Out

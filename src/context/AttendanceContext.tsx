@@ -3,6 +3,10 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { useAttendance as useAttendanceApi } from "../components/hooks/useAttendance";
+import type {
+  AttendanceSummary as ApiAttendanceSummary,
+  RawAttendanceRecord,
+} from "../components/hooks/useAttendance";
 
 // ------------------ Interfaces ------------------
 
@@ -20,15 +24,15 @@ export interface AttendanceRecord {
 export interface AttendanceSummary {
   totalEmployees: number;
   presentToday: number;
-  lateArrivals: number;
+  lateArrivals: number; // mapped from API `late`
   absent: number;
 }
 
 export interface ManualAttendanceRecord {
   employeeId: string;
-  checkIn?: string;
-  checkOut?: string;
-  date: string;
+  date: string; // "YYYY-MM-DD"
+  checkIn?: string; // "HH:mm"
+  checkOut?: string; // "HH:mm"
 }
 
 interface AttendanceContextType {
@@ -54,7 +58,10 @@ interface AttendanceContextType {
 
   refreshAttendance: () => Promise<void>;
 
-  submitManualAttendance: (records: ManualAttendanceRecord[]) => Promise<void>;
+  submitManualAttendance: (
+    records: ManualAttendanceRecord[],
+    bulk?: boolean
+  ) => Promise<void>;
 }
 
 // ------------------ Context ------------------
@@ -82,7 +89,6 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Date range
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -90,17 +96,27 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
   // ------------------ Helpers ------------------
 
-  const formatRecord = (record: any): AttendanceRecord => {
+  const formatRecord = (record: RawAttendanceRecord): AttendanceRecord => {
     const checkInDate = record.checkIn ? new Date(record.checkIn) : null;
     const checkOutDate = record.checkOut ? new Date(record.checkOut) : null;
 
     const totalHours =
       checkInDate && checkOutDate
-        ? ((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60)).toFixed(2)
+        ? (
+            (checkOutDate.getTime() - checkInDate.getTime()) /
+            (1000 * 60 * 60)
+          ).toFixed(2)
         : "-";
 
-    const isLate = checkInDate ? checkInDate.getHours() >= 8 : false;
-    const status = isLate ? "Late" : checkOutDate ? "Present" : "Absent";
+    let status = "Absent"; // default
+
+    if (checkInDate) {
+      // Construct 08:00 on the same day for comparison
+      const eightAM = new Date(checkInDate);
+      eightAM.setHours(8, 0, 0, 0);
+
+      status = checkInDate > eightAM ? "Late" : "Present";
+    }
 
     return {
       id: record.id,
@@ -108,10 +124,16 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
       department: record.department ?? "N/A",
       date: record.date ? record.date.split("T")[0] : "",
       checkIn: checkInDate
-        ? checkInDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        ? checkInDate.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
         : "-",
       checkOut: checkOutDate
-        ? checkOutDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        ? checkOutDate.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
         : "-",
       totalHours,
       status,
@@ -119,14 +141,14 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // ------------------ Fetch Attendance ------------------
-
   const refreshAttendance = async () => {
     if (!token) return navigate("/", { replace: true });
 
     setLoading(true);
-    try {
-      setFetchError(null);
+    setFetchError(null);
 
+    try {
+      // Fetch all attendance (large page to handle client-side filtering)
       const res = await fetchAttendance({
         SearchText: searchText || undefined,
         PageNumber: 1,
@@ -135,23 +157,31 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
         EndDate: endDate || undefined,
       });
 
-      const raw = res?.data?.data ?? res?.data ?? [];
-      const formatted = Array.isArray(raw) ? raw.map(formatRecord) : [];
+      const rawRecords = Array.isArray(res?.data) ? res.data : [];
+      const formatted = rawRecords.map(formatRecord);
+
       setAttendance(formatted);
 
-      setTotalPages(Math.max(1, Math.ceil(formatted.length / pageSize)));
+      // Calculate filtered records for pagination
+      const filtered = getFilteredRecords(formatted);
+      setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
 
+      // Fetch summary
       try {
         const summaryRes = await fetchSummary();
-        const summaryData = summaryRes?.data?.data ?? summaryRes?.data ?? null;
-        setSummary(summaryData);
-      } catch (sErr) {
-        console.error("Failed to fetch summary:", sErr);
+        const apiSummary = summaryRes?.data as ApiAttendanceSummary;
+
+        setSummary({
+          totalEmployees: apiSummary.totalEmployees,
+          presentToday: apiSummary.presentToday,
+          lateArrivals: apiSummary.lateArrivals,
+          absent: apiSummary.absent,
+        });
+      } catch (summaryErr) {
+        console.error("Failed to fetch summary:", summaryErr);
         setSummary(null);
       }
-
-      setFetchError(null);
-    } catch (err: unknown) {
+    } catch (err) {
       console.error("refreshAttendance error:", err);
       setFetchError(err);
     } finally {
@@ -159,26 +189,111 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ------------------ Manual Attendance Submission ------------------
+  // ------------------ Filter Helper ------------------
+  const getFilteredRecords = (records: AttendanceRecord[]) => {
+    let filtered = records;
 
-  const submitManualAttendance = async (records: ManualAttendanceRecord[]) => {
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((r) => r.status === statusFilter);
+    }
+
+    if (searchText.trim()) {
+      const lower = searchText.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.employeeName.toLowerCase().includes(lower) ||
+          r.department.toLowerCase().includes(lower)
+      );
+    }
+
+    if (startDate) {
+      filtered = filtered.filter((r) => r.date >= startDate);
+    }
+    if (endDate) {
+      filtered = filtered.filter((r) => r.date <= endDate);
+    }
+
+    return filtered;
+  };
+
+  // ------------------ Effect: Recalculate Pagination ------------------
+  useEffect(() => {
+    const filtered = getFilteredRecords(attendance);
+    const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    setTotalPages(pages);
+    if (pageNumber > pages) setPageNumber(1);
+  }, [attendance, statusFilter, searchText, startDate, endDate]);
+
+  // ------------------ Manual Attendance Submission ------------------
+  const submitManualAttendance = async (
+    records: ManualAttendanceRecord[],
+    bulk: boolean = false
+  ) => {
     if (!token) return navigate("/", { replace: true });
-    if (!records || records.length === 0) return;
+    if (!records || records.length === 0) {
+      console.warn("No records provided to submit.");
+      return;
+    }
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:7002/api/Attendance/manual", {
+
+      // Filter out records with neither checkIn nor checkOut
+      const validRecords = records.filter(
+        (r) => r.checkIn?.trim() || r.checkOut?.trim()
+      );
+
+      if (validRecords.length === 0) {
+        console.warn("No valid records to submit after filtering.");
+        return;
+      }
+
+      // Map to backend payload format
+      const mappedRecords = validRecords.map((r) => ({
+        employeeId: Number(r.employeeId),
+        checkIn: !!r.checkIn?.trim(),
+        checkOut: !!r.checkOut?.trim(),
+        checkInTime: r.checkIn
+          ? new Date(`${r.date}T${r.checkIn}`).toISOString()
+          : undefined,
+        checkOutTime: r.checkOut
+          ? new Date(`${r.date}T${r.checkOut}`).toISOString()
+          : undefined,
+      }));
+
+      if (mappedRecords.length === 0) {
+        console.warn("No valid records after mapping timestamps.");
+        return;
+      }
+
+      // Backend expects root object: { date, records }
+      const payload = {
+        date: new Date().toISOString(),
+        records: mappedRecords,
+      };
+
+      console.log("Final payload to submit:", JSON.stringify(payload, null, 2));
+
+      const url = "http://localhost:7002/api/Attendance/bulk";
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(records),
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error(`Failed to submit manual attendance: ${res.statusText}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Backend response:", errorText);
+        throw new Error(
+          `Failed to submit manual attendance: ${res.statusText}`
+        );
+      }
 
-      // Refresh after submission
+      console.log("Attendance submitted successfully!");
       await refreshAttendance();
     } catch (err) {
       console.error("submitManualAttendance error:", err);
@@ -199,9 +314,12 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const filtered =
-      statusFilter === "all" ? attendance : attendance.filter((r) => r.status === statusFilter);
+      statusFilter === "all"
+        ? attendance
+        : attendance.filter((r) => r.status === statusFilter);
     setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
-    if (pageNumber > Math.max(1, Math.ceil(filtered.length / pageSize))) setPageNumber(1);
+    if (pageNumber > Math.max(1, Math.ceil(filtered.length / pageSize)))
+      setPageNumber(1);
   }, [statusFilter, attendance]);
 
   // ------------------ Provider ------------------
@@ -226,7 +344,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
         setStartDate,
         setEndDate,
         refreshAttendance,
-        submitManualAttendance, // expose manual attendance function
+        submitManualAttendance,
       }}
     >
       {children}
@@ -238,6 +356,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAttendance = () => {
   const context = useContext(AttendanceContext);
-  if (!context) throw new Error("useAttendance must be used within AttendanceProvider");
+  if (!context)
+    throw new Error("useAttendance must be used within AttendanceProvider");
   return context;
 };

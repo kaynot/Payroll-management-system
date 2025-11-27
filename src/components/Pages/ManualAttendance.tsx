@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useEmployees } from "../../context/EmployeeContext";
-import { useAttendance, type ManualAttendanceRecord } from "../../context/AttendanceContext";
+import {
+  useAttendance,
+  type ManualAttendanceRecord,
+} from "../../context/AttendanceContext";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { CheckCircle, Clock, AlertCircle, Loader2, Search } from "lucide-react";
@@ -13,7 +16,13 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "../ui/pagination";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../ui/select";
 
 interface ManualRecord {
   employeeId: string;
@@ -51,7 +60,9 @@ export default function ManualAttendance() {
       setManualRecords(
         employees.map((emp) => ({
           employeeId: emp.id.toString(),
-          employeeName: emp.fullName ?? `${emp.firstName ?? ""} ${emp.lastName ?? ""}`.trim(),
+          employeeName:
+            emp.fullName ??
+            `${emp.firstName ?? ""} ${emp.lastName ?? ""}`.trim(),
           department: emp.department ?? "N/A",
           date: today,
           checkIn: "",
@@ -76,16 +87,23 @@ export default function ManualAttendance() {
   const getRowInvalid = (rec: ManualRecord) => validateRecord(rec) !== null;
 
   // Handlers
-  const handleChange = (index: number, field: "checkIn" | "checkOut" | "date", value: string) => {
-    setManualRecords((prev) => {
-      const updated = [...prev];
-      updated[index][field] = value;
+  const handleChange = (
+    employeeId: string,
+    field: "checkIn" | "checkOut" | "date",
+    value: string
+  ) => {
+    setManualRecords((prev) =>
+      prev.map((rec) => {
+        if (rec.employeeId !== employeeId) return rec;
 
-      if (field === "checkIn") updated[index].checkInStatus = "pending";
-      if (field === "checkOut") updated[index].checkOutStatus = "pending";
+        const updatedRec = { ...rec, [field]: value };
 
-      return updated;
-    });
+        if (field === "checkIn") updatedRec.checkInStatus = "pending";
+        if (field === "checkOut") updatedRec.checkOutStatus = "pending";
+
+        return updatedRec;
+      })
+    );
   };
 
   const autofillAll = () => {
@@ -101,30 +119,27 @@ export default function ManualAttendance() {
     toast.success("Auto-filled for all employees.");
   };
 
-  const handleSingleCheck = async (rec: ManualRecord, type: "checkIn" | "checkOut") => {
+  const handleSubmitRecord = async (rec: ManualRecord) => {
     const validation = validateRecord(rec);
     if (validation) return toast.error(validation);
 
     setManualRecords((prev) =>
-      prev.map((r) => (r.employeeId === rec.employeeId ? { ...r, disabled: true } : r))
+      prev.map((r) =>
+        r.employeeId === rec.employeeId ? { ...r, disabled: true } : r
+      )
     );
 
     try {
-      const payload: ManualAttendanceRecord = {
-        employeeId: rec.employeeId,
-        date: rec.date,
-        checkIn: type === "checkIn" ? rec.checkIn : undefined,
-        checkOut: type === "checkOut" ? rec.checkOut : undefined,
-      };
-      await submitManualAttendance([payload]);
-      toast.success(`${rec.employeeName} ${type} recorded!`);
+      await submitManualAttendance([rec], true); // single record wrapped in array
+      toast.success(`${rec.employeeName}'s attendance recorded!`);
 
       setManualRecords((prev) =>
         prev.map((r) =>
           r.employeeId === rec.employeeId
             ? {
                 ...r,
-                ...(type === "checkIn" ? { checkInStatus: "success" } : { checkOutStatus: "success" }),
+                checkInStatus: r.checkIn ? "success" : r.checkInStatus,
+                checkOutStatus: r.checkOut ? "success" : r.checkOutStatus,
                 disabled: false,
               }
             : r
@@ -136,7 +151,8 @@ export default function ManualAttendance() {
           r.employeeId === rec.employeeId
             ? {
                 ...r,
-                ...(type === "checkIn" ? { checkInStatus: "error" } : { checkOutStatus: "error" }),
+                checkInStatus: r.checkIn ? "error" : r.checkInStatus,
+                checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
                 disabled: false,
               }
             : r
@@ -146,35 +162,38 @@ export default function ManualAttendance() {
     }
   };
 
-  const handleBulkCheck = async (type: "checkIn" | "checkOut") => {
+  const handleBulkMark = async () => {
     const invalidRows = manualRecords.filter((rec) => getRowInvalid(rec));
-    if (invalidRows.length > 0) return toast.error(`Fix invalid rows before submitting.`);
+    if (invalidRows.length > 0)
+      return toast.error("Fix invalid rows before submitting.");
 
-    const filled = manualRecords.filter((r) => r[type]);
-    if (filled.length === 0) return toast.error(`No ${type} values filled.`);
+    const filledRecords = manualRecords.filter((r) => r.checkIn || r.checkOut);
+    if (filledRecords.length === 0)
+      return toast.error("No check-in or check-out times filled.");
 
     setLoading(true);
     try {
-      const payload = manualRecords.map((rec) => ({
-        employeeId: rec.employeeId,
-        date: rec.date,
-        checkIn: type === "checkIn" ? rec.checkIn : undefined,
-        checkOut: type === "checkOut" ? rec.checkOut : undefined,
-      }));
-      await submitManualAttendance(payload);
-      toast.success(`Bulk ${type} submitted.`);
+      // Call the bulk endpoint with proper payload
+      await submitManualAttendance(filledRecords, true);
 
+      // Update statuses
       setManualRecords((prev) =>
-        prev.map((r) =>
-          r[type] ? { ...r, ...(type === "checkIn" ? { checkInStatus: "success" } : { checkOutStatus: "success" }) } : r
-        )
+        prev.map((r) => ({
+          ...r,
+          checkInStatus: r.checkIn ? "success" : r.checkInStatus,
+          checkOutStatus: r.checkOut ? "success" : r.checkOutStatus,
+        }))
       );
+
+      toast.success("Bulk attendance submitted successfully!");
     } catch {
-      toast.error(`Bulk submission failed.`);
+      toast.error("Bulk submission failed.");
       setManualRecords((prev) =>
-        prev.map((r) =>
-          r[type] ? { ...r, ...(type === "checkIn" ? { checkInStatus: "error" } : { checkOutStatus: "error" }) } : r
-        )
+        prev.map((r) => ({
+          ...r,
+          checkInStatus: r.checkIn ? "error" : r.checkInStatus,
+          checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
+        }))
       );
     } finally {
       setLoading(false);
@@ -184,8 +203,11 @@ export default function ManualAttendance() {
   // Filtered + Paginated Records
   const filteredRecords = useMemo(() => {
     return manualRecords.filter((r) => {
-      const matchesSearch = r.employeeName.toLowerCase().includes(searchText.toLowerCase());
-      const matchesDept = departmentFilter === "all" || r.department === departmentFilter;
+      const matchesSearch = r.employeeName
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+      const matchesDept =
+        departmentFilter === "all" || r.department === departmentFilter;
       const matchesStart = !startDate || r.date >= startDate;
       const matchesEnd = !endDate || r.date <= endDate;
       return matchesSearch && matchesDept && matchesStart && matchesEnd;
@@ -226,7 +248,10 @@ export default function ManualAttendance() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Manual Attendance</h1>
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Button onClick={autofillAll} className="bg-primary hover:bg-primary/90 text-white">
+          <Button
+            onClick={autofillAll}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
             Auto-fill Timesheet
           </Button>
         </div>
@@ -236,8 +261,13 @@ export default function ManualAttendance() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="text-sm text-muted-foreground">
           Filled Check-Ins:{" "}
-          <span className="font-semibold">{manualRecords.filter((r) => r.checkIn).length}</span> | Filled
-          Check-Outs: <span className="font-semibold">{manualRecords.filter((r) => r.checkOut).length}</span>
+          <span className="font-semibold">
+            {manualRecords.filter((r) => r.checkIn).length}
+          </span>{" "}
+          | Filled Check-Outs:{" "}
+          <span className="font-semibold">
+            {manualRecords.filter((r) => r.checkOut).length}
+          </span>
         </div>
         <div className="flex gap-2 items-center justify-end">
           <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[100%]">
@@ -246,18 +276,29 @@ export default function ManualAttendance() {
               type="text"
               placeholder="Search by name"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                setSearchText(e.target.value);
+                setPageNumber(1);
+              }}
               className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
             />
           </div>
-          <Select onValueChange={setDepartmentFilter}>
+          <Select
+            onValueChange={(value) => {
+              setDepartmentFilter(value);
+              setPageNumber(1);
+            }}
+            value={departmentFilter}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {Array.from(new Set(employees.map((e) => e.department))).map((dept) => (
-                <SelectItem key={dept} value={dept}>
+              {Array.from(
+                new Set(employees.map((e) => e.department?.trim() || "N/A"))
+              ).map((dept, idx) => (
+                <SelectItem key={`${dept}-${idx}`} value={dept}>
                   {dept}
                 </SelectItem>
               ))}
@@ -267,7 +308,7 @@ export default function ManualAttendance() {
       </div>
 
       {/* Table */}
-      <div className="max-h-[60vh] overflow-auto border rounded-lg shadow-sm">
+      <div className="h-[55vh] overflow-auto overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 border rounded-lg shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 sticky top-0 z-10 shadow">
             <tr className="text-left text-gray-600 font-medium">
@@ -286,7 +327,9 @@ export default function ManualAttendance() {
               return (
                 <tr
                   key={rec.employeeId}
-                  className={`border-b ${invalid ? "bg-red-50" : "hover:bg-gray-50 transition"}`}
+                  className={`border-b ${
+                    invalid ? "bg-red-50" : "hover:bg-gray-50 transition"
+                  }`}
                 >
                   {/* Employee Info */}
                   <td className="p-2">{rec.employeeName}</td>
@@ -298,9 +341,13 @@ export default function ManualAttendance() {
                       type="date"
                       disabled={rec.disabled}
                       value={rec.date}
-                      onChange={(e) => handleChange(idx, "date", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(rec.employeeId, "date", e.target.value)
+                      }
                       className={`w-full border rounded px-2 py-1 ${
-                        invalid && !rec.date ? "border-red-500" : "border-gray-300"
+                        invalid && !rec.date
+                          ? "border-red-500"
+                          : "border-gray-300"
                       }`}
                     />
                   </td>
@@ -311,9 +358,14 @@ export default function ManualAttendance() {
                       type="time"
                       disabled={rec.disabled}
                       value={rec.checkIn}
-                      onChange={(e) => handleChange(idx, "checkIn", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(rec.employeeId, "checkIn", e.target.value)
+                      }
                       className={`w-full border rounded px-2 py-1 ${
-                        invalid && rec.checkIn && rec.checkOut && rec.checkIn > rec.checkOut
+                        invalid &&
+                        rec.checkIn &&
+                        rec.checkOut &&
+                        rec.checkIn > rec.checkOut
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
@@ -326,9 +378,14 @@ export default function ManualAttendance() {
                       type="time"
                       disabled={rec.disabled}
                       value={rec.checkOut}
-                      onChange={(e) => handleChange(idx, "checkOut", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(rec.employeeId, "checkOut", e.target.value)
+                      }
                       className={`w-full border rounded px-2 py-1 ${
-                        invalid && rec.checkIn && rec.checkOut && rec.checkOut < rec.checkIn
+                        invalid &&
+                        rec.checkIn &&
+                        rec.checkOut &&
+                        rec.checkOut < rec.checkIn
                           ? "border-red-500"
                           : "border-gray-300"
                       }`}
@@ -338,13 +395,25 @@ export default function ManualAttendance() {
                   {/* Status (stacked vertically) */}
                   <td className="p-2 text-center">
                     <div className="flex gap-1 items-center justify-center">
-                      {rec.checkInStatus === "success" && <CheckCircle className="text-green-600" size={16} />}
-                      {rec.checkInStatus === "error" && <AlertCircle className="text-red-600" size={16} />}
-                      {rec.checkInStatus === "pending" && <Clock className="text-gray-400" size={16} />}
-                      
-                      {rec.checkOutStatus === "success" && <CheckCircle className="text-blue-600" size={16} />}
-                      {rec.checkOutStatus === "error" && <AlertCircle className="text-red-600" size={16} />}
-                      {rec.checkOutStatus === "pending" && <Clock className="text-gray-400" size={16} />}
+                      {rec.checkInStatus === "success" && (
+                        <CheckCircle className="text-green-600" size={16} />
+                      )}
+                      {rec.checkInStatus === "error" && (
+                        <AlertCircle className="text-red-600" size={16} />
+                      )}
+                      {rec.checkInStatus === "pending" && (
+                        <Clock className="text-gray-400" size={16} />
+                      )}
+
+                      {rec.checkOutStatus === "success" && (
+                        <CheckCircle className="text-blue-600" size={16} />
+                      )}
+                      {rec.checkOutStatus === "error" && (
+                        <AlertCircle className="text-red-600" size={16} />
+                      )}
+                      {rec.checkOutStatus === "pending" && (
+                        <Clock className="text-gray-400" size={16} />
+                      )}
                     </div>
                   </td>
 
@@ -352,66 +421,76 @@ export default function ManualAttendance() {
                   <td className="p-2 flex gap-2 justify-center">
                     <Button
                       size="sm"
-                      disabled={loading || rec.disabled || !rec.checkIn}
-                      onClick={() => handleSingleCheck(rec, "checkIn")}
-                      className="bg-green-600 hover:bg-green-700 text-white"
+                      disabled={
+                        loading ||
+                        rec.disabled ||
+                        (!rec.checkIn && !rec.checkOut)
+                      }
+                      onClick={() => handleSubmitRecord(rec)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
                     >
-                      {rec.disabled ? <Loader2 className="animate-spin" size={16} /> : "In"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={loading || rec.disabled || !rec.checkOut}
-                      onClick={() => handleSingleCheck(rec, "checkOut")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      {rec.disabled ? <Loader2 className="animate-spin" size={16} /> : "Out"}
+                      {rec.disabled ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : (
+                        "Submit"
+                      )}
                     </Button>
                   </td>
                 </tr>
               );
             })}
           </tbody>
-
         </table>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 items-center">
         {/* Pagination */}
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious href="#" onClick={() => goToPage(pageNumber - 1)} />
+              <PaginationPrevious
+                href="#"
+                onClick={() => goToPage(pageNumber - 1)}
+              />
             </PaginationItem>
-            {getVisiblePages().map((p, idx) =>
+            {getVisiblePages().map((p) =>
               typeof p === "number" ? (
-                <PaginationItem key={idx}>
-                  <PaginationLink href="#" isActive={p === pageNumber} onClick={() => goToPage(p)}>
+                <PaginationItem key={`page-${p}`}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === pageNumber}
+                    onClick={() => goToPage(p)}
+                  >
                     {p}
                   </PaginationLink>
                 </PaginationItem>
               ) : (
-                <PaginationItem key={idx}>
+                <PaginationItem key={`ellipsis-${Math.random()}`}>
                   <PaginationEllipsis />
                 </PaginationItem>
               )
             )}
+
             <PaginationItem>
-              <PaginationNext href="#" onClick={() => goToPage(pageNumber + 1)} />
+              <PaginationNext
+                href="#"
+                onClick={() => goToPage(pageNumber + 1)}
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
 
         {/* Bulk Actions */}
-        <div className="flex gap-4 mt-4">
-          <Button onClick={() => handleBulkCheck("checkIn")} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
-            {loading && <Loader2 className="animate-spin mr-2" />}
-            Bulk Check-In
-          </Button>
-          <Button onClick={() => handleBulkCheck("checkOut")} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-            {loading && <Loader2 className="animate-spin mr-2" />}
-            Bulk Check-Out
-          </Button>
-        </div>
+        <Button
+          onClick={handleBulkMark}
+          disabled={
+            loading || manualRecords.every((r) => !r.checkIn && !r.checkOut)
+          }
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          {loading && <Loader2 className="animate-spin mr-2" />}
+          Bulk Mark
+        </Button>
       </div>
     </div>
   );

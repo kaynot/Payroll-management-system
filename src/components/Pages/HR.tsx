@@ -334,7 +334,7 @@ export default function HR() {
                       >
                         <td className="p-4 font-semibold">
                           {" "}
-                          {employee.fullName}
+                          {employee.fullName}{" "}
                         </td>
                         <td className="p-4">{employee.id}</td>
                         <td className="p-4">{employee.jobPosition || "N/A"}</td>
