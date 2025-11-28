@@ -24,8 +24,21 @@ export interface AttendanceRecord {
 export interface AttendanceSummary {
   totalEmployees: number;
   presentToday: number;
-  lateArrivals: number; // mapped from API `late`
+  lateArrivals: number;
   absent: number;
+  absentToday: number;
+  onLeave: number;
+  attendancePercentage: number;
+  workingDays: number;
+  overallPresent: number;
+  overallAbsent: number;
+  overallLeave: number;
+  averageAttendancePercentage: number;
+  allWorkingDays: number;
+  totalPresent: number;
+  totalAbsent: number;
+  totalLeave: number;
+  lifetimeAttendancePercentage: number;
 }
 
 export interface ManualAttendanceRecord {
@@ -176,6 +189,21 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
           presentToday: apiSummary.presentToday,
           lateArrivals: apiSummary.lateArrivals,
           absent: apiSummary.absent,
+          absentToday: apiSummary.absentToday ?? 0,
+          onLeave: apiSummary.onLeave ?? 0,
+          attendancePercentage: apiSummary.attendancePercentage ?? 0,
+          workingDays: apiSummary.workingDays ?? 0,
+          overallPresent: apiSummary.overallPresent ?? 0,
+          overallAbsent: apiSummary.overallAbsent ?? 0,
+          overallLeave: apiSummary.overallLeave ?? 0,
+          averageAttendancePercentage:
+            apiSummary.averageAttendancePercentage ?? 0,
+          allWorkingDays: apiSummary.allWorkingDays ?? 0,
+          totalPresent: apiSummary.totalPresent ?? 0,
+          totalAbsent: apiSummary.totalAbsent ?? 0,
+          totalLeave: apiSummary.totalLeave ?? 0,
+          lifetimeAttendancePercentage:
+            apiSummary.lifetimeAttendancePercentage ?? 0,
         });
       } catch (summaryErr) {
         console.error("Failed to fetch summary:", summaryErr);

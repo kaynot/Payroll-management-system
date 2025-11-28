@@ -25,6 +25,19 @@ export interface AttendanceSummary {
   presentToday: number;
   lateArrivals: number;
   absent: number;
+  absentToday: number;
+  onLeave: number;
+  attendancePercentage: number;
+  workingDays: number;
+  overallPresent: number;
+  overallAbsent: number;
+  overallLeave: number;
+  averageAttendancePercentage: number;
+  allWorkingDays: number;
+  totalPresent: number;
+  totalAbsent: number;
+  totalLeave: number;
+  lifetimeAttendancePercentage: number;
 }
 
 
