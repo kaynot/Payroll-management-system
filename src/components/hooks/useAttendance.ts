@@ -21,6 +21,9 @@ export interface RawAttendanceRecord {
 }
 
 export interface AttendanceSummary {
+  allTime: any;
+  month: any;
+  today: any;
   totalEmployees: number;
   presentToday: number;
   lateArrivals: number;

@@ -186,24 +186,26 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
         setSummary({
           totalEmployees: apiSummary.totalEmployees,
-          presentToday: apiSummary.presentToday,
-          lateArrivals: apiSummary.lateArrivals,
-          absent: apiSummary.absent,
-          absentToday: apiSummary.absentToday ?? 0,
-          onLeave: apiSummary.onLeave ?? 0,
-          attendancePercentage: apiSummary.attendancePercentage ?? 0,
-          workingDays: apiSummary.workingDays ?? 0,
-          overallPresent: apiSummary.overallPresent ?? 0,
-          overallAbsent: apiSummary.overallAbsent ?? 0,
-          overallLeave: apiSummary.overallLeave ?? 0,
+          presentToday: apiSummary.today.presentToday,
+          lateArrivals: apiSummary.today.lateArrivals,
+          absent: apiSummary.today.absentToday,
+          absentToday: apiSummary.today.absentToday,
+          onLeave: apiSummary.today.onLeave,
+          attendancePercentage: apiSummary.today.attendancePercentage,
+
+          workingDays: apiSummary.month.workingDays,
+          overallPresent: apiSummary.month.overallPresent,
+          overallAbsent: apiSummary.month.overallAbsent,
+          overallLeave: apiSummary.month.overallLeave,
           averageAttendancePercentage:
-            apiSummary.averageAttendancePercentage ?? 0,
-          allWorkingDays: apiSummary.allWorkingDays ?? 0,
-          totalPresent: apiSummary.totalPresent ?? 0,
-          totalAbsent: apiSummary.totalAbsent ?? 0,
-          totalLeave: apiSummary.totalLeave ?? 0,
+            apiSummary.month.averageAttendancePercentage,
+
+          allWorkingDays: apiSummary.allTime.allWorkingDays,
+          totalPresent: apiSummary.allTime.totalPresent,
+          totalAbsent: apiSummary.allTime.totalAbsent,
+          totalLeave: apiSummary.allTime.totalLeave,
           lifetimeAttendancePercentage:
-            apiSummary.lifetimeAttendancePercentage ?? 0,
+            apiSummary.allTime.lifetimeAttendancePercentage,
         });
       } catch (summaryErr) {
         console.error("Failed to fetch summary:", summaryErr);

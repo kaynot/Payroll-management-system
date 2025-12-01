@@ -121,7 +121,7 @@ export const Today = () => {
           },
           {
             title: "Attendance Percentage Today",
-            value: summary?.attendancePercentage ?? 0,
+            value: summary?.attendancePercentage.toFixed(2) ?? 0,
             desc: "Employees absent",
             color: "text-red-500",
           },
