@@ -1,13 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  Search,
-  Upload,
-  Download,
-  RefreshCw,
-  Building2,
-  HandCoins,
-  UserCog,
-} from "lucide-react";
+import { BarChart, Clock, Infinity, RefreshCw } from "lucide-react";
 import { useAttendance } from "../../context/AttendanceContext";
 
 import { useMemo } from "react";
@@ -46,15 +38,15 @@ export default function Attendance() {
         <Tabs defaultValue="today" className="flex flex-col w-full">
           <TabsList>
             <TabsTrigger value="today" className="w-full gap-2">
-              <Building2 color="#000000" size={18} />
+              <Clock color="#000000" size={18} />
               Today
             </TabsTrigger>
             <TabsTrigger value="thisMonth" className="w-full gap-2">
-              <HandCoins color="#000000" size={18} />
+              <BarChart color="#000000" size={18} />
               This Month
             </TabsTrigger>
             <TabsTrigger value="allTime" className="w-full gap-2">
-              <UserCog color="#000000" size={18} />
+              <Infinity color="#000000" size={18} />
               All Time
             </TabsTrigger>
           </TabsList>
