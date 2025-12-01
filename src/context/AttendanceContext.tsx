@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
@@ -12,6 +18,7 @@ import type {
 
 export interface AttendanceRecord {
   id: number;
+  employeeId: string | number;
   employeeName: string;
   department: string;
   date: string;
@@ -50,6 +57,7 @@ export interface ManualAttendanceRecord {
 
 interface AttendanceContextType {
   attendance: AttendanceRecord[];
+  paginatedAttendance: AttendanceRecord[];
   summary: AttendanceSummary | null;
   loading: boolean;
   fetchError: unknown | null;
@@ -97,13 +105,16 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(20);
-  const [totalPages, setTotalPages] = useState(1);
 
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  const statuses = useMemo(
+    () => Array.from(new Set(attendance.map((r) => r.status.toLowerCase()))),
+    [attendance]
+  );
 
   const FETCH_ALL_SIZE = 10000;
 
@@ -121,18 +132,17 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
           ).toFixed(2)
         : "-";
 
-    let status = "Absent"; // default
+    let status = "Absent";
 
     if (checkInDate) {
-      // Construct 08:00 on the same day for comparison
       const eightAM = new Date(checkInDate);
       eightAM.setHours(8, 0, 0, 0);
-
       status = checkInDate > eightAM ? "Late" : "Present";
     }
 
     return {
       id: record.id,
+      employeeId: record.employeeId,
       employeeName: `${record.firstName ?? ""} ${record.surname ?? ""}`.trim(),
       department: record.department ?? "N/A",
       date: record.date ? record.date.split("T")[0] : "",
@@ -154,14 +164,13 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // ------------------ Fetch Attendance ------------------
+
   const refreshAttendance = async () => {
     if (!token) return navigate("/", { replace: true });
-
     setLoading(true);
     setFetchError(null);
 
     try {
-      // Fetch all attendance (large page to handle client-side filtering)
       const res = await fetchAttendance({
         SearchText: searchText || undefined,
         PageNumber: 1,
@@ -172,12 +181,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
       const rawRecords = Array.isArray(res?.data) ? res.data : [];
       const formatted = rawRecords.map(formatRecord);
-
       setAttendance(formatted);
-
-      // Calculate filtered records for pagination
-      const filtered = getFilteredRecords(formatted);
-      setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
 
       // Fetch summary
       try {
@@ -219,66 +223,51 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // ------------------ Filter Helper ------------------
-  const getFilteredRecords = (records: AttendanceRecord[]) => {
-    let filtered = records;
+  // ------------------ Filter & Pagination ------------------
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((r) => r.status === statusFilter);
-    }
+  const filteredAttendance = useMemo(() => {
+    return attendance.filter((r) => {
+      const statusMatch =
+        statusFilter === "all" ||
+        r.status.toLowerCase() === statusFilter.toLowerCase();
 
-    if (searchText.trim()) {
-      const lower = searchText.toLowerCase();
-      filtered = filtered.filter(
-        (r) =>
-          r.employeeName.toLowerCase().includes(lower) ||
-          r.department.toLowerCase().includes(lower)
-      );
-    }
+      const searchMatch =
+        r.employeeName.toLowerCase().includes(searchText.toLowerCase()) ||
+        r.department.toLowerCase().includes(searchText.toLowerCase());
 
-    if (startDate) {
-      filtered = filtered.filter((r) => r.date >= startDate);
-    }
-    if (endDate) {
-      filtered = filtered.filter((r) => r.date <= endDate);
-    }
+      const startMatch = startDate ? r.date >= startDate : true;
+      const endMatch = endDate ? r.date <= endDate : true;
 
-    return filtered;
-  };
-
-  // ------------------ Effect: Recalculate Pagination ------------------
-  useEffect(() => {
-    const filtered = getFilteredRecords(attendance);
-    const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
-    setTotalPages(pages);
-    if (pageNumber > pages) setPageNumber(1);
+      return statusMatch && searchMatch && startMatch && endMatch;
+    });
   }, [attendance, statusFilter, searchText, startDate, endDate]);
 
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredAttendance.length / pageSize)),
+    [filteredAttendance, pageSize]
+  );
+
+  const paginatedAttendance = useMemo(() => {
+    const start = (pageNumber - 1) * pageSize;
+    return filteredAttendance.slice(start, start + pageSize);
+  }, [filteredAttendance, pageNumber, pageSize]);
+
   // ------------------ Manual Attendance Submission ------------------
+
   const submitManualAttendance = async (
     records: ManualAttendanceRecord[],
     bulk: boolean = false
   ) => {
     if (!token) return navigate("/", { replace: true });
-    if (!records || records.length === 0) {
-      console.warn("No records provided to submit.");
-      return;
-    }
+    if (!records || records.length === 0) return;
 
     try {
       setLoading(true);
-
-      // Filter out records with neither checkIn nor checkOut
       const validRecords = records.filter(
         (r) => r.checkIn?.trim() || r.checkOut?.trim()
       );
+      if (validRecords.length === 0) return;
 
-      if (validRecords.length === 0) {
-        console.warn("No valid records to submit after filtering.");
-        return;
-      }
-
-      // Map to backend payload format
       const mappedRecords = validRecords.map((r) => ({
         employeeId: Number(r.employeeId),
         checkIn: !!r.checkIn?.trim(),
@@ -291,21 +280,12 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
           : undefined,
       }));
 
-      if (mappedRecords.length === 0) {
-        console.warn("No valid records after mapping timestamps.");
-        return;
-      }
-
-      // Backend expects root object: { date, records }
       const payload = {
         date: new Date().toISOString(),
         records: mappedRecords,
       };
 
-      console.log("Final payload to submit:", JSON.stringify(payload, null, 2));
-
       const url = "http://localhost:7002/api/Attendance/bulk";
-
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -317,13 +297,11 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error("Backend response:", errorText);
         throw new Error(
-          `Failed to submit manual attendance: ${res.statusText}`
+          `Failed to submit manual attendance: ${res.statusText} - ${errorText}`
         );
       }
 
-      console.log("Attendance submitted successfully!");
       await refreshAttendance();
     } catch (err) {
       console.error("submitManualAttendance error:", err);
@@ -340,17 +318,11 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
       setPageNumber(1);
       refreshAttendance();
     }
-  }, [user, token, searchText, startDate, endDate]);
+  }, [user, token, searchText, statusFilter, startDate, endDate]);
 
   useEffect(() => {
-    const filtered =
-      statusFilter === "all"
-        ? attendance
-        : attendance.filter((r) => r.status === statusFilter);
-    setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
-    if (pageNumber > Math.max(1, Math.ceil(filtered.length / pageSize)))
-      setPageNumber(1);
-  }, [statusFilter, attendance]);
+    if (pageNumber > totalPages) setPageNumber(1);
+  }, [totalPages]);
 
   // ------------------ Provider ------------------
 
@@ -358,6 +330,7 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
     <AttendanceContext.Provider
       value={{
         attendance,
+        paginatedAttendance,
         summary,
         loading,
         fetchError,

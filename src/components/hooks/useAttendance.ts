@@ -76,6 +76,7 @@ export const useAttendance = () => {
 
     const res = await fetchData("Attendance", formattedParams);
     return res.data; // backend returns {message, data:[], statusCode, totalPages?}
+    
   };
 
   // ------------------ Fetch Summary ------------------

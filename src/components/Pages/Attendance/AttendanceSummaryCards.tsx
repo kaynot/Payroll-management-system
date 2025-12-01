@@ -1,58 +1,35 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
-import { useAttendance } from "../../../context/AttendanceContext";
-import { Users, UserCheck, Clock, UserX } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 
-export default function AttendanceSummaryCards() {
-  const { summary, loading } = useAttendance();
+interface SummaryCardProps {
+  title: string;
+  value: number | string;
+  desc?: string;
+  icon: LucideIcon;
+  color?: string; // tailwind text color
+}
 
-  if (loading) {
-    return <div className="text-sm text-muted">Loading summary…</div>;
-  }
-
-  if (!summary) {
-    return (
-      <div className="text-sm text-red-500">No summary data available.</div>
-    );
-  }
-
-  const cards = [
-    {
-      label: "Total Employees",
-      value: summary.totalEmployees,
-      icon: Users,
-    },
-    {
-      label: "Present Today",
-      value: summary.presentToday,
-      icon: UserCheck,
-    },
-    {
-      label: "Late Arrivals",
-      value: summary.lateArrivals,
-      icon: Clock,
-    },
-    {
-      label: "Absent",
-      value: summary.absent,
-      icon: UserX,
-    },
-  ];
-
+export const SummaryCard = ({
+  title,
+  value,
+  desc,
+  icon: Icon,
+  color = "text-primary",
+}: SummaryCardProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card, i) => (
-        <Card key={i} className="rounded-xl shadow-sm border">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <card.icon className="w-5 h-5 text-primary" />
-              {card.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{card.value}</p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-all p-5 cursor-pointer">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm text-muted-foreground">{title}</p>
+
+          <p className={`text-3xl font-bold mt-1 ${color}`}>{value}</p>
+
+          {desc && <p className="text-xs text-muted-foreground mt-2">{desc}</p>}
+        </div>
+
+        <div className="p-2 rounded-lg bg-muted">
+          <Icon className="w-5 h-5 text-muted-foreground" />
+        </div>
+      </div>
     </div>
   );
-}
+};

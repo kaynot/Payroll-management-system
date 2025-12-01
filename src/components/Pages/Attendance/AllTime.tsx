@@ -5,7 +5,16 @@ import {
   SelectContent,
   SelectItem,
 } from "../../ui/select";
-import { Download, Upload, Search } from "lucide-react";
+import {
+  Download,
+  Upload,
+  Search,
+  Plane,
+  Percent,
+  UserX,
+  UserCheck,
+  Calendar,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -18,6 +27,7 @@ import {
 
 import { useAttendance } from "../../../context/AttendanceContext";
 import { useMemo } from "react";
+import { SummaryCard } from "./AttendanceSummaryCards";
 
 export const AllTime = () => {
   const {
@@ -94,49 +104,44 @@ export const AllTime = () => {
     <main>
       {/* Summary Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          {
-            title: "Total Working Days",
-            value: summary?.allWorkingDays ?? 0,
-            desc: `Total tracked working days since attendance began`,
-            color: "text-green-600",
-          },
-          {
-            title: "Total Present",
-            value: summary?.totalPresent ?? 0,
-            desc: `All present check-ins recorded`,
-            color: "text-green-600",
-          },
-          {
-            title: "Total Absent",
-            value: summary?.totalAbsent ?? 0,
-            desc: "All absences recorded",
-            color: "text-amber-500",
-          },
-          {
-            title: "Total Leave",
-            value: summary?.totalLeave ?? 0,
-            desc: "All leave events recorded",
-            color: "text-red-500",
-          },
-          {
-            title: "Lifetime Attendance Percentage",
-            value: summary?.lifetimeAttendancePercentage ?? 0,
-            desc: "Overall attendance percentage since tracking began",
-            color: "text-red-500",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-          >
-            <h3 className="text-gray-600 font-medium mb-1">{item.title}</h3>
-            <p className={`text-3xl font-semibold ${item.color}`}>
-              {item.value}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-          </div>
-        ))}
+        <SummaryCard
+          title="All Working Days"
+          value={summary?.allWorkingDays ?? 0}
+          desc="Total tracked working days"
+          icon={Calendar}
+        />
+
+        <SummaryCard
+          title="Total Present"
+          value={summary?.totalPresent ?? 0}
+          desc="Presence count across all time"
+          icon={UserCheck}
+          color="text-green-600"
+        />
+
+        <SummaryCard
+          title="Total Absent"
+          value={summary?.totalAbsent ?? 0}
+          desc="Total absences recorded"
+          icon={UserX}
+          color="text-red-600"
+        />
+
+        <SummaryCard
+          title="Total Leave"
+          value={summary?.totalLeave ?? 0}
+          desc="Leave entries across all time"
+          icon={Plane}
+          color="text-amber-600"
+        />
+
+        <SummaryCard
+          title="Lifetime Attendance"
+          value={`${summary?.lifetimeAttendancePercentage ?? 0}%`}
+          desc="Overall attendance rate"
+          icon={Percent}
+          color="text-indigo-600"
+        />
       </section>
 
       {/* Table Section */}
@@ -145,7 +150,7 @@ export const AllTime = () => {
           <div className="flex flex-col justify-between items-center gap-6">
             <div className="flex justify-between items-center w-full">
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
-                Attendance Records
+                All-Time Attendance Records
               </h1>
 
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
@@ -160,6 +165,7 @@ export const AllTime = () => {
               </div>
             </div>
 
+            {/* Filters */}
             <div className="flex w-full justify-between items-center gap-2 pt-6 border-t">
               <div className="flex justify-between items-center gap-2">
                 <div className="flex justify-center items-center gap-1">
@@ -183,7 +189,6 @@ export const AllTime = () => {
                       type="date"
                       value={endDate}
                       onChange={(e) => {
-                        console.log(e.target.value);
                         setEndDate(e.target.value);
                       }}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
@@ -204,7 +209,6 @@ export const AllTime = () => {
               </div>
 
               <div className="flex justify-between items-center gap-2">
-                {/* Single status select (no duplicates) */}
                 <Select onValueChange={setStatusFilter}>
                   <SelectTrigger className="pl-8 pr-4 w-full">
                     <SelectValue placeholder="All" />

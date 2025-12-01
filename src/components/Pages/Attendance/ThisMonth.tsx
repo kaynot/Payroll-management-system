@@ -5,7 +5,16 @@ import {
   SelectContent,
   SelectItem,
 } from "../../ui/select";
-import { Download, Upload, Search } from "lucide-react";
+import {
+  Download,
+  Upload,
+  Search,
+  Plane,
+  CalendarDays,
+  Percent,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -18,6 +27,7 @@ import {
 
 import { useAttendance } from "../../../context/AttendanceContext";
 import { useMemo } from "react";
+import { SummaryCard } from "./AttendanceSummaryCards";
 
 export const ThisMonth = () => {
   const {
@@ -38,29 +48,29 @@ export const ThisMonth = () => {
     totalPages,
   } = useAttendance();
 
-  // --- Client-side: apply status filter (backend doesn't support status param)
+  // ------------------ Filtering (status + date + search) ------------------
   const filteredAttendance = useMemo(() => {
     return attendance.filter((r) => {
-      // --- Status Filter ---
+      // Status filter
       const statusMatch = statusFilter === "all" || r.status === statusFilter;
 
-      // --- Date Filter ---
+      // Search filter
+      const searchMatch = r.employeeName
+        ?.toLowerCase()
+        .includes(searchText.toLowerCase());
+
+      // Date filter
       let dateMatch = true;
-      const recordDate = new Date(r.date); // assuming r.date is ISO string or Date-compatible
-      if (startDate) {
-        const start = new Date(startDate);
-        dateMatch = recordDate >= start;
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        dateMatch = dateMatch && recordDate <= end;
-      }
+      const recordDate = new Date(r.date);
 
-      return statusMatch && dateMatch;
+      if (startDate) dateMatch = recordDate >= new Date(startDate);
+      if (endDate) dateMatch = dateMatch && recordDate <= new Date(endDate);
+
+      return statusMatch && searchMatch && dateMatch;
     });
-  }, [attendance, statusFilter, startDate, endDate]);
+  }, [attendance, statusFilter, searchText, startDate, endDate]);
 
-  // --- Client-side: pagination slice
+  // ------------------ Pagination ------------------
   const paginatedAttendance = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
     return filteredAttendance.slice(start, start + pageSize);
@@ -82,6 +92,7 @@ export const ThisMonth = () => {
 
     const start = Math.max(2, curr - 1);
     const end = Math.min(last - 1, curr + 1);
+
     for (let i = start; i <= end; i++) pages.push(i);
 
     if (curr < last - 2) pages.push("...");
@@ -90,62 +101,55 @@ export const ThisMonth = () => {
     return pages;
   };
 
+  // ------------------ UI ------------------
   return (
     <main>
       {/* Summary Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {[
-          {
-            title: "Total Working Days This Month",
-            value: summary?.workingDays ?? 0,
-            desc: `Working days counted so far this month`,
-            color: "text-green-600",
-          },
-          {
-            title: "Overall Present Count",
-            value: summary?.overallPresent ?? 0,
-            desc: `Total employee-present check-ins this month`,
-            color: "text-green-600",
-          },
-          {
-            title: "Overall Absent Count",
-            value: summary?.overallAbsent ?? 0,
-            desc: `Employees absent across all working days`,
-            color: "text-green-600",
-          },
-          {
-            title: "Overall Leave Count",
-            value: summary?.overallLeave ?? 0,
-            desc: "Employees on leave across all working days",
-            color: "text-amber-500",
-          },
-          {
-            title: "Average Attendance Percentage (Month)",
-            value: summary?.averageAttendancePercentage ?? 0,
-            desc: "Average attendance percentage for the month",
-            color: "text-red-500",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-xl transition-shadow duration-300 cursor-pointer"
-          >
-            <h3 className="text-gray-600 font-medium mb-1">{item.title}</h3>
-            <p className={`text-3xl font-semibold ${item.color}`}>
-              {item.value}
-            </p>
-            <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-          </div>
-        ))}
+        <SummaryCard
+          title="Working Days"
+          value={summary?.workingDays ?? 0}
+          desc="Total working days in the month"
+          icon={CalendarDays}
+        />
+        <SummaryCard
+          title="Overall Present"
+          value={summary?.overallPresent ?? 0}
+          desc="Presence count this month"
+          icon={UserCheck}
+          color="text-green-600"
+        />
+        <SummaryCard
+          title="Overall Absent"
+          value={summary?.overallAbsent ?? 0}
+          desc="Absences this month"
+          icon={UserX}
+          color="text-red-600"
+        />
+        <SummaryCard
+          title="On Leave"
+          value={summary?.overallLeave ?? 0}
+          desc="Leave events recorded"
+          icon={Plane}
+          color="text-amber-600"
+        />
+        <SummaryCard
+          title="Average Attendance"
+          value={`${summary?.averageAttendancePercentage ?? 0}%`}
+          desc="Monthly attendance rate"
+          icon={Percent}
+          color="text-indigo-600"
+        />
       </section>
 
       {/* Table Section */}
       <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between sm:min-h-[630px] md:min-h-[630px] lg:min-h-[630px] bg-card">
         <div className="flex flex-col gap-8">
+          {/* Header */}
           <div className="flex flex-col justify-between items-center gap-6">
             <div className="flex justify-between items-center w-full">
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
-                Attendance Records
+                Attendance Records This Month
               </h1>
 
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
@@ -160,6 +164,7 @@ export const ThisMonth = () => {
               </div>
             </div>
 
+            {/* Filters */}
             <div className="flex w-full justify-between items-center gap-2 pt-6 border-t">
               <div className="flex justify-between items-center gap-2">
                 <div className="flex justify-center items-center gap-1">
@@ -183,7 +188,6 @@ export const ThisMonth = () => {
                       type="date"
                       value={endDate}
                       onChange={(e) => {
-                        console.log(e.target.value);
                         setEndDate(e.target.value);
                       }}
                       className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
@@ -204,7 +208,6 @@ export const ThisMonth = () => {
               </div>
 
               <div className="flex justify-between items-center gap-2">
-                {/* Single status select (no duplicates) */}
                 <Select onValueChange={setStatusFilter}>
                   <SelectTrigger className="pl-8 pr-4 w-full">
                     <SelectValue placeholder="All" />
@@ -221,7 +224,7 @@ export const ThisMonth = () => {
           </div>
 
           {/* Table */}
-          <div className="overflow-auto w-full mt-4 justify-start">
+          <div className="overflow-auto w-full mt-4">
             {loading ? (
               <p className="text-gray-500 text-center py-10">
                 Loading attendance...
@@ -254,6 +257,7 @@ export const ThisMonth = () => {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {paginatedAttendance.length === 0 ? (
                     <tr>

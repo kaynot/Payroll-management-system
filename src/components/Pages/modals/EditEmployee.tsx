@@ -140,17 +140,17 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
       if (!title.trim()) return toast.error("Title is required.");
       if (!firstName.trim()) return toast.error("First Name is required.");
       if (!surname.trim()) return toast.error("Surname is required.");
-      if (!otherName.trim()) return toast.error("Other Names are required.");
+      // if (!otherName.trim()) return toast.error("Other Names are required.");
       if (!email.trim()) return toast.error("Email is required.");
       if (!phoneNumber.trim()) return toast.error("Phone Number is required.");
-      if (!address.trim()) return toast.error("Address is required.");
+      // if (!address.trim()) return toast.error("Address is required.");
       if (!departmentId) return toast.error("Department is required.");
       if (!jobPosition.trim()) return toast.error("Job Position is required.");
       if (!employmentType.trim())
         return toast.error("Employment Type is required.");
       if (!salary.trim()) return toast.error("Salary is required.");
-      if (!payFrequency.trim())
-        return toast.error("Pay Frequency is required.");
+      // if (!payFrequency.trim())
+      //   return toast.error("Pay Frequency is required.");
 
       const depId = parseInt(departmentId, 10);
       if (isNaN(depId)) return toast.error("Invalid Department selected.");
@@ -174,20 +174,22 @@ export const EditEmployee = ({ onClose, employee }: EditEmployeeProps) => {
         status: status.charAt(0).toUpperCase() + status.slice(1),
       };
 
-      console.log("Payload being sent:", payload);
-
       // -------------------- Send PUT request --------------------
       await updateData(`Employee/${employee.id}`, payload);
 
       toast.success("Employee updated successfully!");
       onClose(); // close dialog after success
     } catch (err: any) {
-      // -------------------- Handle backend validation errors --------------------
+      // Handle backend validation errors
       if (err.response?.data?.errors) {
         const errorMessages = Object.values(err.response.data.errors)
           .flat()
           .join("\n");
         toast.error(`Validation error:\n${errorMessages}`);
+      }
+      // Handle message-based errors like age restriction
+      else if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
       } else {
         console.error("Failed to update employee:", err);
         toast.error("Failed to update employee. Check console for details.");
