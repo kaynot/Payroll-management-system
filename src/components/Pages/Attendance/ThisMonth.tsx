@@ -1,3 +1,4 @@
+// --- your imports stay the same ---
 import {
   Select,
   SelectTrigger,
@@ -26,8 +27,15 @@ import {
 } from "../../ui/pagination";
 
 import { useAttendance } from "../../../context/AttendanceContext";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { SummaryCard } from "./AttendanceSummaryCards";
+import { Skeleton } from "../../ui/skeleton";
+import { ShimmerRow } from "./ShimmerRow";
+
+// Get first & last day of current month
+const now = new Date();
+const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
 export const ThisMonth = () => {
   const {
@@ -51,24 +59,29 @@ export const ThisMonth = () => {
   // ------------------ Filtering (status + date + search) ------------------
   const filteredAttendance = useMemo(() => {
     return attendance.filter((r) => {
-      // Status filter
+      const recordDate = new Date(r.date);
+      const isThisMonth = recordDate >= firstDay && recordDate <= lastDay;
+
+      if (!isThisMonth) return false;
+
       const statusMatch = statusFilter === "all" || r.status === statusFilter;
 
-      // Search filter
       const searchMatch = r.employeeName
         ?.toLowerCase()
         .includes(searchText.toLowerCase());
 
-      // Date filter
       let dateMatch = true;
-      const recordDate = new Date(r.date);
-
       if (startDate) dateMatch = recordDate >= new Date(startDate);
       if (endDate) dateMatch = dateMatch && recordDate <= new Date(endDate);
 
       return statusMatch && searchMatch && dateMatch;
     });
   }, [attendance, statusFilter, searchText, startDate, endDate]);
+
+  useEffect(() => {
+    setStartDate(firstDay.toISOString().split("T")[0]);
+    setEndDate(lastDay.toISOString().split("T")[0]);
+  }, []);
 
   // ------------------ Pagination ------------------
   const paginatedAttendance = useMemo(() => {
@@ -106,40 +119,52 @@ export const ThisMonth = () => {
     <main>
       {/* Summary Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <SummaryCard
-          title="Working Days"
-          value={summary?.workingDays ?? 0}
-          desc="Total working days in the month"
-          icon={CalendarDays}
-        />
-        <SummaryCard
-          title="Overall Present"
-          value={summary?.overallPresent ?? 0}
-          desc="Presence count this month"
-          icon={UserCheck}
-          color="text-green-600"
-        />
-        <SummaryCard
-          title="Overall Absent"
-          value={summary?.overallAbsent ?? 0}
-          desc="Absences this month"
-          icon={UserX}
-          color="text-red-600"
-        />
-        <SummaryCard
-          title="On Leave"
-          value={summary?.overallLeave ?? 0}
-          desc="Leave events recorded"
-          icon={Plane}
-          color="text-amber-600"
-        />
-        <SummaryCard
-          title="Average Attendance"
-          value={`${summary?.averageAttendancePercentage ?? 0}%`}
-          desc="Monthly attendance rate"
-          icon={Percent}
-          color="text-indigo-600"
-        />
+        {loading ? (
+          <>
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+          </>
+        ) : (
+          <>
+            <SummaryCard
+              title="Working Days"
+              value={summary?.workingDays ?? 0}
+              desc="Total working days in the month"
+              icon={CalendarDays}
+            />
+            <SummaryCard
+              title="Overall Present"
+              value={summary?.overallPresent ?? 0}
+              desc="Presence count this month"
+              icon={UserCheck}
+              color="text-green-600"
+            />
+            <SummaryCard
+              title="Overall Absent"
+              value={summary?.overallAbsent ?? 0}
+              desc="Absences this month"
+              icon={UserX}
+              color="text-red-600"
+            />
+            <SummaryCard
+              title="On Leave"
+              value={summary?.overallLeave ?? 0}
+              desc="Leave events recorded"
+              icon={Plane}
+              color="text-amber-600"
+            />
+            <SummaryCard
+              title="Average Attendance"
+              value={`${summary?.averageAttendancePercentage ?? 0}%`}
+              desc="Monthly attendance rate"
+              icon={Percent}
+              color="text-indigo-600"
+            />
+          </>
+        )}
       </section>
 
       {/* Table Section */}
@@ -226,9 +251,24 @@ export const ThisMonth = () => {
           {/* Table */}
           <div className="overflow-auto w-full mt-4">
             {loading ? (
-              <p className="text-gray-500 text-center py-10">
-                Loading attendance...
-              </p>
+              <table className="w-full text-sm">
+                <thead className="border-b">
+                  <tr className="text-left text-gray-500 font-medium">
+                    <th className="h-12 px-4">Employee Name</th>
+                    <th className="h-12 px-4">Department</th>
+                    <th className="h-12 px-4">Date</th>
+                    <th className="h-12 px-4">Check In</th>
+                    <th className="h-12 px-4">Check Out</th>
+                    <th className="h-12 px-4 text-center">Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <ShimmerRow key={i} />
+                  ))}
+                </tbody>
+              </table>
             ) : attendance.length === 0 ? (
               <p className="text-gray-500 text-center py-10">
                 No records found.
@@ -307,35 +347,51 @@ export const ThisMonth = () => {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => goToPage(pageNumber - 1)}
-              />
+              {loading ? (
+                <Skeleton className="h-8 w-20 rounded-md" />
+              ) : (
+                <PaginationPrevious
+                  href="#"
+                  onClick={() => goToPage(pageNumber - 1)}
+                />
+              )}
             </PaginationItem>
 
-            {getVisiblePages().map((p, idx) =>
-              typeof p === "number" ? (
-                <PaginationItem key={idx}>
-                  <PaginationLink
-                    href="#"
-                    isActive={p === pageNumber}
-                    onClick={() => goToPage(p)}
-                  >
-                    {p}
-                  </PaginationLink>
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={idx}>
-                  <PaginationEllipsis />
-                </PaginationItem>
+            {loading ? (
+              <>
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </>
+            ) : (
+              getVisiblePages().map((p, idx) =>
+                typeof p === "number" ? (
+                  <PaginationItem key={idx}>
+                    <PaginationLink
+                      href="#"
+                      isActive={p === pageNumber}
+                      onClick={() => goToPage(p)}
+                    >
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={idx}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )
               )
             )}
 
             <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() => goToPage(pageNumber + 1)}
-              />
+              {loading ? (
+                <Skeleton className="h-8 w-20 rounded-md" />
+              ) : (
+                <PaginationNext
+                  href="#"
+                  onClick={() => goToPage(pageNumber + 1)}
+                />
+              )}
             </PaginationItem>
           </PaginationContent>
         </Pagination>
