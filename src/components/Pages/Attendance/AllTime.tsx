@@ -26,51 +26,52 @@ import {
 } from "../../ui/pagination";
 
 import { useAttendance } from "../../../context/AttendanceContext";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+
 import { SummaryCard } from "./AttendanceSummaryCards";
+import { SummaryCardSkeleton } from "./SummaryCardSkeleton";
+import { ShimmerRow } from "./ShimmerRow";
 
 export const AllTime = () => {
-  const {
-    attendance,
-    summary,
-    loading,
-    searchText,
-    setSearchText,
-    statusFilter,
-    setStatusFilter,
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    pageNumber,
-    setPageNumber,
-    pageSize,
-    totalPages,
-  } = useAttendance();
+  const { attendance, summary, loading, pageSize } = useAttendance();
 
-  // --- Client-side: apply status filter (backend doesn't support status param)
+  // --- Local filter state ---
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPageNumber(1);
+  }, [searchText, statusFilter, startDate, endDate]);
+
+  // --- Client-side filtering ---
   const filteredAttendance = useMemo(() => {
     return attendance.filter((r) => {
-      // --- Status Filter ---
-      const statusMatch = statusFilter === "all" || r.status === statusFilter;
+      const statusMatch =
+        statusFilter === "all" ||
+        r.status.toLowerCase() === statusFilter.toLowerCase();
 
-      // --- Date Filter ---
+      const searchMatch = r.employeeName
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
+
       let dateMatch = true;
-      const recordDate = new Date(r.date); // assuming r.date is ISO string or Date-compatible
-      if (startDate) {
-        const start = new Date(startDate);
-        dateMatch = recordDate >= start;
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        dateMatch = dateMatch && recordDate <= end;
-      }
+      const recordDate = new Date(r.date);
+      if (startDate) dateMatch = recordDate >= new Date(startDate);
+      if (endDate) dateMatch = dateMatch && recordDate <= new Date(endDate);
 
-      return statusMatch && dateMatch;
+      return statusMatch && searchMatch && dateMatch;
     });
-  }, [attendance, statusFilter, startDate, endDate]);
+  }, [attendance, statusFilter, searchText, startDate, endDate]);
 
-  // --- Client-side: pagination slice
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredAttendance.length / pageSize)),
+    [filteredAttendance, pageSize]
+  );
+
   const paginatedAttendance = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
     return filteredAttendance.slice(start, start + pageSize);
@@ -104,55 +105,59 @@ export const AllTime = () => {
     <main>
       {/* Summary Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <SummaryCard
-          title="All Working Days"
-          value={summary?.allWorkingDays ?? 0}
-          desc="Total tracked working days"
-          icon={Calendar}
-        />
-
-        <SummaryCard
-          title="Total Present"
-          value={summary?.totalPresent ?? 0}
-          desc="Presence count across all time"
-          icon={UserCheck}
-          color="text-green-600"
-        />
-
-        <SummaryCard
-          title="Total Absent"
-          value={summary?.totalAbsent ?? 0}
-          desc="Total absences recorded"
-          icon={UserX}
-          color="text-red-600"
-        />
-
-        <SummaryCard
-          title="Total Leave"
-          value={summary?.totalLeave ?? 0}
-          desc="Leave entries across all time"
-          icon={Plane}
-          color="text-amber-600"
-        />
-
-        <SummaryCard
-          title="Lifetime Attendance"
-          value={`${summary?.lifetimeAttendancePercentage ?? 0}%`}
-          desc="Overall attendance rate"
-          icon={Percent}
-          color="text-indigo-600"
-        />
+        {loading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <SummaryCardSkeleton key={i} />
+          ))
+        ) : (
+          <>
+            <SummaryCard
+              title="All Working Days"
+              value={summary?.allWorkingDays ?? 0}
+              desc="Total tracked working days"
+              icon={Calendar}
+            />
+            <SummaryCard
+              title="Total Present"
+              value={summary?.totalPresent ?? 0}
+              desc="Presence count across all time"
+              icon={UserCheck}
+              color="text-green-600"
+            />
+            <SummaryCard
+              title="Total Absent"
+              value={summary?.totalAbsent ?? 0}
+              desc="Total absences recorded"
+              icon={UserX}
+              color="text-red-600"
+            />
+            <SummaryCard
+              title="Total Leave"
+              value={summary?.totalLeave ?? 0}
+              desc="Leave entries across all time"
+              icon={Plane}
+              color="text-amber-600"
+            />
+            <SummaryCard
+              title="Lifetime Attendance"
+              value={`${summary?.lifetimeAttendancePercentage ?? 0}%`}
+              desc="Overall attendance rate"
+              icon={Percent}
+              color="text-indigo-600"
+            />
+          </>
+        )}
       </section>
 
       {/* Table Section */}
       <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between sm:min-h-[630px] md:min-h-[630px] lg:min-h-[630px] bg-card">
         <div className="flex flex-col gap-8">
+          {/* Header & Actions */}
           <div className="flex flex-col justify-between items-center gap-6">
             <div className="flex justify-between items-center w-full">
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
                 All-Time Attendance Records
               </h1>
-
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
                 <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 transition duration-300 hover:text-white">
                   <Download className="w-4 h-4" />
@@ -170,30 +175,21 @@ export const AllTime = () => {
               <div className="flex justify-between items-center gap-2">
                 <div className="flex justify-center items-center gap-1">
                   <p className="text-xs">filter from:</p>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                      }}
-                      className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
+                  />
                 </div>
-
                 <div className="flex justify-center items-center gap-1">
                   <p className="text-xs">to:</p>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => {
-                        setEndDate(e.target.value);
-                      }}
-                      className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
+                  />
                 </div>
               </div>
 
@@ -208,98 +204,88 @@ export const AllTime = () => {
                 />
               </div>
 
-              <div className="flex justify-between items-center gap-2">
-                <Select onValueChange={setStatusFilter}>
-                  <SelectTrigger className="pl-8 pr-4 w-full">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="Present">Present</SelectItem>
-                    <SelectItem value="Late">Late</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select onValueChange={setStatusFilter} value={statusFilter}>
+                <SelectTrigger className="pl-8 pr-4 w-24">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="Present">Present</SelectItem>
+                  <SelectItem value="Late">Late</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           {/* Table */}
           <div className="overflow-auto w-full mt-4 justify-start">
-            {loading ? (
-              <p className="text-gray-500 text-center py-10">
-                Loading attendance...
-              </p>
-            ) : attendance.length === 0 ? (
-              <p className="text-gray-500 text-center py-10">
-                No records found.
-              </p>
-            ) : (
-              <table className="w-full text-sm text-left">
-                <thead className="border-b">
-                  <tr className="border-b border-gray-200 text-left text-gray-500 font-medium">
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Employee Name
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Department
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Date
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Check In
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Check Out
-                    </th>
-                    <th className="h-12 px-4 text-center font-medium text-muted-foreground">
-                      Status
-                    </th>
+            <table className="w-full text-sm text-left">
+              <thead className="border-b">
+                <tr className="border-b border-gray-200 text-left text-gray-500 font-medium">
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
+                    Employee Name
+                  </th>
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
+                    Department
+                  </th>
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
+                    Date
+                  </th>
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
+                    Check In
+                  </th>
+                  <th className="h-12 px-4 font-medium text-muted-foreground">
+                    Check Out
+                  </th>
+                  <th className="h-12 px-4 text-center font-medium text-muted-foreground">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <ShimmerRow key={i} />
+                  ))
+                ) : paginatedAttendance.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="text-center py-6 text-muted-foreground"
+                    >
+                      No records found.
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {paginatedAttendance.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="text-center py-6 text-muted-foreground"
-                      >
-                        No records found.
+                ) : (
+                  paginatedAttendance.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b transition-colors hover:bg-muted/40"
+                    >
+                      <td className="p-4 font-semibold">{row.employeeName}</td>
+                      <td className="p-4">{row.department}</td>
+                      <td className="p-4">{row.date}</td>
+                      <td className="p-4">{row.checkIn}</td>
+                      <td className="p-4">{row.checkOut}</td>
+                      <td className="p-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            row.status === "Late"
+                              ? "bg-amber-100 text-amber-700"
+                              : row.status === "Absent"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-indigo-100 text-indigo-700"
+                          }`}
+                        >
+                          {row.status}
+                        </span>
                       </td>
                     </tr>
-                  ) : (
-                    paginatedAttendance.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b transition-colors hover:bg-muted/40"
-                      >
-                        <td className="p-4 font-semibold">
-                          {row.employeeName}
-                        </td>
-                        <td className="p-4">{row.department}</td>
-                        <td className="p-4">{row.date}</td>
-                        <td className="p-4">{row.checkIn}</td>
-                        <td className="p-4">{row.checkOut}</td>
-                        <td className="p-4 text-center">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              row.status === "Late"
-                                ? "bg-amber-100 text-amber-700"
-                                : row.status === "Absent"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-indigo-100 text-indigo-700"
-                            }`}
-                          >
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            )}
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 

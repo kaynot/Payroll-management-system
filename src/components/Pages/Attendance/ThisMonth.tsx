@@ -1,4 +1,3 @@
-// --- your imports stay the same ---
 import {
   Select,
   SelectTrigger,
@@ -6,6 +5,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../../ui/select";
+
 import {
   Download,
   Upload,
@@ -16,6 +16,7 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
+
 import {
   Pagination,
   PaginationContent,
@@ -27,45 +28,46 @@ import {
 } from "../../ui/pagination";
 
 import { useAttendance } from "../../../context/AttendanceContext";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { SummaryCard } from "./AttendanceSummaryCards";
-import { Skeleton } from "../../ui/skeleton";
+import { SummaryCardSkeleton } from "./SummaryCardSkeleton";
 import { ShimmerRow } from "./ShimmerRow";
 
-// Get first & last day of current month
+// --- Month range ---
 const now = new Date();
 const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
 export const ThisMonth = () => {
-  const {
-    attendance,
-    summary,
-    loading,
-    searchText,
-    setSearchText,
-    statusFilter,
-    setStatusFilter,
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    pageNumber,
-    setPageNumber,
-    pageSize,
-    totalPages,
-  } = useAttendance();
+  const { attendance, summary, loading, pageSize } = useAttendance();
 
-  // ------------------ Filtering (status + date + search) ------------------
+  // --- Local state ---
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState(
+    firstDay.toISOString().split("T")[0]
+  );
+  const [endDate, setEndDate] = useState(lastDay.toISOString().split("T")[0]);
+  const [pageNumber, setPageNumber] = useState(1);
+
+  // Reset page when filters change
+  useEffect(
+    () => setPageNumber(1),
+    [searchText, statusFilter, startDate, endDate]
+  );
+
+  // --- Client-side filtering ---
   const filteredAttendance = useMemo(() => {
     return attendance.filter((r) => {
       const recordDate = new Date(r.date);
-      const isThisMonth = recordDate >= firstDay && recordDate <= lastDay;
 
-      if (!isThisMonth) return false;
+      // Only this month
+      if (recordDate < firstDay || recordDate > lastDay) return false;
 
-      const statusMatch = statusFilter === "all" || r.status === statusFilter;
-
+      const statusMatch =
+        statusFilter === "all" ||
+        r.status.toLowerCase() === statusFilter.toLowerCase();
       const searchMatch = r.employeeName
         ?.toLowerCase()
         .includes(searchText.toLowerCase());
@@ -78,20 +80,20 @@ export const ThisMonth = () => {
     });
   }, [attendance, statusFilter, searchText, startDate, endDate]);
 
-  useEffect(() => {
-    setStartDate(firstDay.toISOString().split("T")[0]);
-    setEndDate(lastDay.toISOString().split("T")[0]);
-  }, []);
+  // --- Pagination ---
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredAttendance.length / pageSize)),
+    [filteredAttendance, pageSize]
+  );
 
-  // ------------------ Pagination ------------------
   const paginatedAttendance = useMemo(() => {
     const start = (pageNumber - 1) * pageSize;
     return filteredAttendance.slice(start, start + pageSize);
   }, [filteredAttendance, pageNumber, pageSize]);
 
-  const goToPage = (num: number) => {
-    if (num < 1 || num > totalPages) return;
-    setPageNumber(num);
+  const goToPage = (n: number) => {
+    if (n < 1 || n > totalPages) return;
+    setPageNumber(n);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -105,7 +107,6 @@ export const ThisMonth = () => {
 
     const start = Math.max(2, curr - 1);
     const end = Math.min(last - 1, curr + 1);
-
     for (let i = start; i <= end; i++) pages.push(i);
 
     if (curr < last - 2) pages.push("...");
@@ -114,19 +115,14 @@ export const ThisMonth = () => {
     return pages;
   };
 
-  // ------------------ UI ------------------
   return (
     <main>
       {/* Summary Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {loading ? (
-          <>
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-          </>
+          Array.from({ length: 5 }).map((_, i) => (
+            <SummaryCardSkeleton key={i} />
+          ))
         ) : (
           <>
             <SummaryCard
@@ -168,21 +164,20 @@ export const ThisMonth = () => {
       </section>
 
       {/* Table Section */}
-      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between sm:min-h-[630px] md:min-h-[630px] lg:min-h-[630px] bg-card">
+      <section className="border p-6 rounded-lg flex flex-col gap-8 justify-between bg-card sm:min-h-[630px] md:min-h-[630px] lg:min-h-[630px]">
         <div className="flex flex-col gap-8">
-          {/* Header */}
+          {/* Header & Actions */}
           <div className="flex flex-col justify-between items-center gap-6">
             <div className="flex justify-between items-center w-full">
               <h1 className="text-lg font-medium sm:text-sm md:text-lg lg:text-xl min-w-40">
                 Attendance Records This Month
               </h1>
-
               <div className="flex items-center gap-4 mt-4 sm:mt-0">
-                <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 transition duration-300 hover:text-white">
+                <button className="px-4 py-2 flex items-center gap-2 border rounded-md text-sm hover:bg-primary/90 hover:text-white transition">
                   <Download className="w-4 h-4" />
                   <span>Export</span>
                 </button>
-                <button className="bg-primary px-4 py-2 rounded-md text-primary-foreground flex items-center gap-2 text-sm font-medium hover:bg-primary/90 transition duration-300">
+                <button className="bg-primary px-4 py-2 rounded-md text-primary-foreground flex items-center gap-2 text-sm font-medium hover:bg-primary/90 transition">
                   <Upload className="w-4 h-4" />
                   <span>Import Excel</span>
                 </button>
@@ -191,60 +186,52 @@ export const ThisMonth = () => {
 
             {/* Filters */}
             <div className="flex w-full justify-between items-center gap-2 pt-6 border-t">
-              <div className="flex justify-between items-center gap-2">
-                <div className="flex justify-center items-center gap-1">
-                  <p className="text-xs">filter from:</p>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                      }}
-                      className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
-                    />
-                  </div>
+              {/* Date */}
+              <div className="flex gap-2">
+                <div className="flex items-center gap-1">
+                  <p className="text-xs">from:</p>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground outline-primary"
+                  />
                 </div>
-
-                <div className="flex justify-center items-center gap-1">
+                <div className="flex items-center gap-1">
                   <p className="text-xs">to:</p>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => {
-                        setEndDate(e.target.value);
-                      }}
-                      className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground shadow-sm appearance-none outline-primary"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full rounded-md border bg-white px-3 py-2 h-8 text-sm text-muted-foreground outline-primary"
+                  />
                 </div>
               </div>
 
+              {/* Search */}
               <div className="bg-muted/30 border py-1 px-4 rounded-full text-sm flex gap-4 items-center w-[30%]">
                 <Search size={16} color="#9ca3af" />
                 <input
                   type="text"
                   placeholder="Search name"
-                  className="bg-muted/5 text-muted-foreground text-sm outline-none w-full"
+                  className="bg-transparent text-muted-foreground text-sm outline-none w-full"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                 />
               </div>
 
-              <div className="flex justify-between items-center gap-2">
-                <Select onValueChange={setStatusFilter}>
-                  <SelectTrigger className="pl-8 pr-4 w-full">
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="Present">Present</SelectItem>
-                    <SelectItem value="Late">Late</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Status */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="pl-8 pr-4 w-24">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="Present">Present</SelectItem>
+                  <SelectItem value="Late">Late</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -262,81 +249,54 @@ export const ThisMonth = () => {
                     <th className="h-12 px-4 text-center">Status</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {Array.from({ length: 10 }).map((_, i) => (
                     <ShimmerRow key={i} />
                   ))}
                 </tbody>
               </table>
-            ) : attendance.length === 0 ? (
+            ) : paginatedAttendance.length === 0 ? (
               <p className="text-gray-500 text-center py-10">
                 No records found.
               </p>
             ) : (
               <table className="w-full text-sm text-left">
                 <thead className="border-b">
-                  <tr className="border-b border-gray-200 text-left text-gray-500 font-medium">
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Employee Name
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Department
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Date
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Check In
-                    </th>
-                    <th className="h-12 px-4 font-medium text-muted-foreground">
-                      Check Out
-                    </th>
-                    <th className="h-12 px-4 text-center font-medium text-muted-foreground">
-                      Status
-                    </th>
+                  <tr className="border-b border-gray-200 text-gray-500 font-medium">
+                    <th className="h-12 px-4">Employee Name</th>
+                    <th className="h-12 px-4">Department</th>
+                    <th className="h-12 px-4">Date</th>
+                    <th className="h-12 px-4">Check In</th>
+                    <th className="h-12 px-4">Check Out</th>
+                    <th className="h-12 px-4 text-center">Status</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {paginatedAttendance.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={8}
-                        className="text-center py-6 text-muted-foreground"
-                      >
-                        No records found.
+                  {paginatedAttendance.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="border-b transition-colors hover:bg-muted/40"
+                    >
+                      <td className="p-4 font-semibold">{row.employeeName}</td>
+                      <td className="p-4">{row.department}</td>
+                      <td className="p-4">{row.date}</td>
+                      <td className="p-4">{row.checkIn}</td>
+                      <td className="p-4">{row.checkOut}</td>
+                      <td className="p-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            row.status === "Late"
+                              ? "bg-amber-100 text-amber-700"
+                              : row.status === "Absent"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-indigo-100 text-indigo-700"
+                          }`}
+                        >
+                          {row.status}
+                        </span>
                       </td>
                     </tr>
-                  ) : (
-                    paginatedAttendance.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b transition-colors hover:bg-muted/40"
-                      >
-                        <td className="p-4 font-semibold">
-                          {row.employeeName}
-                        </td>
-                        <td className="p-4">{row.department}</td>
-                        <td className="p-4">{row.date}</td>
-                        <td className="p-4">{row.checkIn}</td>
-                        <td className="p-4">{row.checkOut}</td>
-                        <td className="p-4 text-center">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              row.status === "Late"
-                                ? "bg-amber-100 text-amber-700"
-                                : row.status === "Absent"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-indigo-100 text-indigo-700"
-                            }`}
-                          >
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             )}
@@ -347,51 +307,35 @@ export const ThisMonth = () => {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              {loading ? (
-                <Skeleton className="h-8 w-20 rounded-md" />
-              ) : (
-                <PaginationPrevious
-                  href="#"
-                  onClick={() => goToPage(pageNumber - 1)}
-                />
-              )}
+              <PaginationPrevious
+                href="#"
+                onClick={() => goToPage(pageNumber - 1)}
+              />
             </PaginationItem>
 
-            {loading ? (
-              <>
-                <Skeleton className="h-8 w-8 rounded-md" />
-                <Skeleton className="h-8 w-8 rounded-md" />
-                <Skeleton className="h-8 w-8 rounded-md" />
-              </>
-            ) : (
-              getVisiblePages().map((p, idx) =>
-                typeof p === "number" ? (
-                  <PaginationItem key={idx}>
-                    <PaginationLink
-                      href="#"
-                      isActive={p === pageNumber}
-                      onClick={() => goToPage(p)}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={idx}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                )
+            {getVisiblePages().map((p, idx) =>
+              typeof p === "number" ? (
+                <PaginationItem key={idx}>
+                  <PaginationLink
+                    href="#"
+                    isActive={p === pageNumber}
+                    onClick={() => goToPage(p)}
+                  >
+                    {p}
+                  </PaginationLink>
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={idx}>
+                  <PaginationEllipsis />
+                </PaginationItem>
               )
             )}
 
             <PaginationItem>
-              {loading ? (
-                <Skeleton className="h-8 w-20 rounded-md" />
-              ) : (
-                <PaginationNext
-                  href="#"
-                  onClick={() => goToPage(pageNumber + 1)}
-                />
-              )}
+              <PaginationNext
+                href="#"
+                onClick={() => goToPage(pageNumber + 1)}
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
