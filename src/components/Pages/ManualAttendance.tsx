@@ -34,8 +34,8 @@ interface ManualRecord {
   checkInStatus?: "pending" | "success" | "error";
   checkOutStatus?: "pending" | "success" | "error";
   disabled?: boolean;
+  errorMessage?: string;
 }
-
 export default function ManualAttendance() {
   const { employees, loading: employeesLoading } = useEmployees();
   const { submitManualAttendance } = useAttendance();
@@ -105,7 +105,6 @@ export default function ManualAttendance() {
       })
     );
   };
-
   const autofillAll = () => {
     setManualRecords((prev) =>
       prev.map((rec) => ({
@@ -123,6 +122,7 @@ export default function ManualAttendance() {
     const validation = validateRecord(rec);
     if (validation) return toast.error(validation);
 
+    // Disable row during submission
     setManualRecords((prev) =>
       prev.map((r) =>
         r.employeeId === rec.employeeId ? { ...r, disabled: true } : r
@@ -130,21 +130,44 @@ export default function ManualAttendance() {
     );
 
     try {
-      await submitManualAttendance([rec], true); // single record wrapped in array
-      toast.success(`${rec.employeeName}'s attendance recorded!`);
+      const res = await submitManualAttendance([rec], true); // single record wrapped in array
+
+      // Check if API returned an error for this employee
+      const errorMsg = (res.data.errors || []).find((err: string) =>
+        err.includes(`Employee ${rec.employeeId}`)
+      );
 
       setManualRecords((prev) =>
         prev.map((r) =>
           r.employeeId === rec.employeeId
             ? {
                 ...r,
-                checkInStatus: r.checkIn ? "success" : r.checkInStatus,
-                checkOutStatus: r.checkOut ? "success" : r.checkOutStatus,
+                checkInStatus: errorMsg
+                  ? r.checkIn
+                    ? "error"
+                    : r.checkInStatus
+                  : r.checkIn
+                  ? "success"
+                  : r.checkInStatus,
+                checkOutStatus: errorMsg
+                  ? r.checkOut
+                    ? "error"
+                    : r.checkOutStatus
+                  : r.checkOut
+                  ? "success"
+                  : r.checkOutStatus,
                 disabled: false,
+                errorMessage: errorMsg || undefined,
               }
             : r
         )
       );
+
+      if (errorMsg) {
+        toast.error(`Failed to mark attendance for ${rec.employeeName}`);
+      } else {
+        toast.success(`${rec.employeeName}'s attendance recorded!`);
+      }
     } catch {
       setManualRecords((prev) =>
         prev.map((r) =>
@@ -154,45 +177,86 @@ export default function ManualAttendance() {
                 checkInStatus: r.checkIn ? "error" : r.checkInStatus,
                 checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
                 disabled: false,
+                errorMessage:
+                  "Submission failed due to network or server error.",
               }
             : r
         )
       );
-      toast.error(`Failed for ${rec.employeeName}`);
+      toast.error(`Failed to mark attendance for ${rec.employeeName}`);
     }
   };
 
   const handleBulkMark = async () => {
+    // Validate rows
     const invalidRows = manualRecords.filter((rec) => getRowInvalid(rec));
-    if (invalidRows.length > 0)
+    if (invalidRows.length > 0) {
       return toast.error("Fix invalid rows before submitting.");
+    }
 
+    // Filter records with check-in or check-out
     const filledRecords = manualRecords.filter((r) => r.checkIn || r.checkOut);
-    if (filledRecords.length === 0)
+    if (filledRecords.length === 0) {
       return toast.error("No check-in or check-out times filled.");
+    }
 
     setLoading(true);
-    try {
-      // Call the bulk endpoint with proper payload
-      await submitManualAttendance(filledRecords, true);
 
-      // Update statuses
+    try {
+      const res = await submitManualAttendance(filledRecords, true);
+
+      // Extract failed employee IDs with messages
+      const failedIdsWithMessages = (res.data.errors || [])
+        .map((err: string) => {
+          const match = err.match(/Employee (\d+).*/);
+          return match ? { id: match[1], message: err } : null;
+        })
+        .filter(Boolean) as { id: string; message: string }[];
+
+      // Update statuses based on success/failure
       setManualRecords((prev) =>
-        prev.map((r) => ({
-          ...r,
-          checkInStatus: r.checkIn ? "success" : r.checkInStatus,
-          checkOutStatus: r.checkOut ? "success" : r.checkOutStatus,
-        }))
+        prev.map((r) => {
+          const fail = failedIdsWithMessages.find((f) => f.id === r.employeeId);
+          if (fail) {
+            return {
+              ...r,
+              checkInStatus: r.checkIn ? "error" : r.checkInStatus,
+              checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
+              disabled: false,
+              errorMessage: fail.message,
+            };
+          }
+          if (r.checkIn || r.checkOut) {
+            return {
+              ...r,
+              checkInStatus: r.checkIn ? "success" : r.checkInStatus,
+              checkOutStatus: r.checkOut ? "success" : r.checkOutStatus,
+              disabled: false,
+              errorMessage: undefined,
+            };
+          }
+          return r;
+        })
       );
 
-      toast.success("Bulk attendance submitted successfully!");
+      // Show toast message
+      if (failedIdsWithMessages.length > 0) {
+        toast.error(
+          `${failedIdsWithMessages.length} record(s) failed. Others marked successfully.`
+        );
+      } else {
+        toast.success("Bulk attendance submitted successfully!");
+      }
     } catch {
       toast.error("Bulk submission failed.");
+      // Mark all as error
       setManualRecords((prev) =>
         prev.map((r) => ({
           ...r,
           checkInStatus: r.checkIn ? "error" : r.checkInStatus,
           checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
+          disabled: false,
+          errorMessage: "Submission failed due to network or server error.",
         }))
       );
     } finally {
@@ -418,7 +482,7 @@ export default function ManualAttendance() {
                   </td>
 
                   {/* Actions (buttons stay horizontal) */}
-                  <td className="p-2 flex gap-2 justify-center">
+                  <td className="p-2 flex flex-col gap-1 items-center justify-center">
                     <Button
                       size="sm"
                       disabled={
@@ -435,6 +499,16 @@ export default function ManualAttendance() {
                         "Submit"
                       )}
                     </Button>
+
+                    {/* Error message */}
+                    {rec.errorMessage && (
+                      <span
+                        className="text-xs text-red-600 mt-1"
+                        title={rec.errorMessage}
+                      >
+                        ⚠ {rec.errorMessage}
+                      </span>
+                    )}
                   </td>
                 </tr>
               );

@@ -174,7 +174,7 @@ export const AllTime = () => {
             <div className="flex w-full justify-between items-center gap-2 pt-6 border-t">
               <div className="flex justify-between items-center gap-2">
                 <div className="flex justify-center items-center gap-1">
-                  <p className="text-xs">filter from:</p>
+                  <p className="text-xs">from:</p>
                   <input
                     type="date"
                     value={startDate}
