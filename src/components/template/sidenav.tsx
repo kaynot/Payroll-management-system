@@ -34,7 +34,11 @@ const navigation = [
     icon: Calendar,
     children: [
       { name: "View Attendance", href: "/dashboard/attendance", icon: Eye },
-      { name: "Manual Attendance", href: "/dashboard/attendance/manual", icon: Edit },
+      {
+        name: "Manual Attendance",
+        href: "/dashboard/attendance/manual",
+        icon: Edit,
+      },
     ],
   },
   { name: "Payroll", href: "/dashboard/payroll", icon: DollarSign },
@@ -42,12 +46,13 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {}
+  );
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -68,8 +73,9 @@ export default function DashboardLayout() {
     setExpandedMenus((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
-  const isActiveItem = (item: typeof navigation[0]) =>
-    location.pathname === item.href || item.children?.some((child) => child.href === location.pathname);
+  const isActiveItem = (item: (typeof navigation)[0]) =>
+    location.pathname === item.href ||
+    item.children?.some((child) => child.href === location.pathname);
 
   return (
     <div className="flex bg-background">
@@ -112,13 +118,17 @@ export default function DashboardLayout() {
                       : "opacity-100 w-auto"
                   )}
                 >
-                  Innorik
+                  Innorik HR
                 </h1>
               )}
             </div>
 
             {!isDesktop && (
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarOpen(false)}
+              >
                 <X className="w-5 h-5" />
               </Button>
             )}
@@ -153,7 +163,9 @@ export default function DashboardLayout() {
                       <span
                         className={cn(
                           "inline-block transition-all duration-300 ease-out",
-                          sidebarCollapsed && isDesktop ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100 max-w-full"
+                          sidebarCollapsed && isDesktop
+                            ? "opacity-0 max-w-0 overflow-hidden"
+                            : "opacity-100 max-w-full"
                         )}
                       >
                         {item.name}
@@ -162,7 +174,11 @@ export default function DashboardLayout() {
 
                     {item.children && !sidebarCollapsed && (
                       <span>
-                        {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {expanded ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
                       </span>
                     )}
                   </Button>
@@ -179,14 +195,20 @@ export default function DashboardLayout() {
                       {item.children.map((child) => (
                         <Button
                           key={child.name}
-                          variant={location.pathname === child.href ? "default" : "ghost"}
+                          variant={
+                            location.pathname === child.href
+                              ? "default"
+                              : "ghost"
+                          }
                           className="w-full justify-start text-sm pl-6 flex items-center gap-2"
                           onClick={() => {
                             navigate(child.href);
                             setSidebarOpen(false);
                           }}
                         >
-                          {child.icon && <child.icon className="w-4 h-4 flex-shrink-0" />}
+                          {child.icon && (
+                            <child.icon className="w-4 h-4 flex-shrink-0" />
+                          )}
                           {child.name}
                         </Button>
                       ))}
@@ -216,11 +238,20 @@ export default function DashboardLayout() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">Admin User</p>
-                      <p className="text-xs text-muted-foreground truncate">admin@innorik.com</p>
+                      <p className="text-sm font-semibold truncate">
+                        Admin User
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        admin@innorik.com
+                      </p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleLogout}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={handleLogout}
+                  >
                     <LogOut className="h-4 w-4" /> Logout
                   </Button>
                 </PopoverContent>
@@ -236,10 +267,17 @@ export default function DashboardLayout() {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">Admin User</p>
-                  <p className="text-xs text-muted-foreground truncate">admin@innorik.com</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    admin@innorik.com
+                  </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleLogout}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={handleLogout}
+              >
                 <LogOut className="h-4 w-4" /> Logout
               </Button>
             </div>
@@ -256,7 +294,12 @@ export default function DashboardLayout() {
       >
         <header className="sticky top-0 z-30 h-16 border-b border-border backdrop-blur-sm bg-card/95 flex items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+            >
               <Menu className="h-5 w-5" />
             </Button>
             <h2 className="text-lg font-heading font-semibold hidden lg:block">
@@ -274,7 +317,9 @@ export default function DashboardLayout() {
               <PopoverContent className="w-80 p-0">
                 <div className="p-3 border-b flex justify-between items-center">
                   <h3 className="font-semibold">Notifications</h3>
-                  <button className="text-xs text-blue-500">Mark all as read</button>
+                  <button className="text-xs text-blue-500">
+                    Mark all as read
+                  </button>
                 </div>
                 <div className="max-h-80 overflow-y-auto divide-y">
                   <div className="flex items-start gap-3 p-3 hover:bg-gray-50">
@@ -282,7 +327,9 @@ export default function DashboardLayout() {
                       <Wallet className="w-4 h-4 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium">Payroll for October processed successfully</p>
+                      <p className="text-sm font-medium">
+                        Payroll for October processed successfully
+                      </p>
                       <span className="text-xs text-gray-400">5 mins ago</span>
                     </div>
                   </div>
