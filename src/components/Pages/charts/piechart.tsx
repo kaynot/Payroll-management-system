@@ -81,7 +81,6 @@ const centerTextPlugin = {
       ctx.font = "bold 24px sans-serif";
       ctx.fillText(value.toString(), width / 2, height / 2 + 12);
     } else {
-      // Show "Hover a slice" before hover
       ctx.font = " sans-serif";
       ctx.fillStyle = "#4F46E5";
       ctx.fillText("Hover a segment", width / 2, height / 2);
