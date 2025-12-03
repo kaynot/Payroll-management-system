@@ -47,26 +47,26 @@ export const Today = () => {
   useEffect(() => setPageNumber(1), [searchText, statusFilter]);
 
   // --- Merge employees with attendance for today ---
-  const mergedAttendance = useMemo(
-    () =>
-      employees.map((emp) => {
-        const record = attendance.find(
-          (r) => String(r.employeeId) === String(emp.id) && r.date === today
-        );
-        return {
-          id: emp.id,
-          employeeName: `${emp.firstName} ${emp.lastName} ${
-            emp.otherNames ?? ""
-          }`.trim(),
-          department: emp.department ?? "N/A",
-          date: today,
-          checkIn: record?.checkIn ?? "-",
-          checkOut: record?.checkOut ?? "-",
-          status: record?.status ?? "Absent",
-        };
-      }),
-    [employees, attendance, today]
-  );
+  const mergedAttendance = useMemo(() => {
+    return employees.map((emp) => {
+      const record = attendance.find(
+        (r) =>
+          String(r.employeeId) === String(emp.id) && r.date.startsWith(today)
+      );
+
+      return {
+        id: emp.id,
+        employeeName: `${emp.firstName} ${emp.lastName} ${
+          emp.otherNames ?? ""
+        }`.trim(),
+        department: record?.department ?? emp.department ?? "N/A", // <-- fallback to employee.department
+        date: today,
+        checkIn: record?.checkIn ?? "-",
+        checkOut: record?.checkOut ?? "-",
+        status: record?.status ?? "Absent",
+      };
+    });
+  }, [employees, attendance, today]);
 
   // --- Filtering ---
   const filteredAttendance = useMemo(

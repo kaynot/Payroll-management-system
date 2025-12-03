@@ -27,7 +27,7 @@ import {
 interface ManualRecord {
   employeeId: string;
   employeeName: string;
-  department: string;
+  jobPosition: string;
   date: string;
   checkIn: string;
   checkOut: string;
@@ -36,6 +36,19 @@ interface ManualRecord {
   disabled?: boolean;
   errorMessage?: string;
 }
+
+interface AttendanceCache {
+  [employeeId: string]: {
+    date?: string;
+    checkIn?: string;
+    checkOut?: string;
+    checkInStatus?: "pending" | "success" | "error";
+    checkOutStatus?: "pending" | "success" | "error";
+  };
+}
+
+const LOCAL_STORAGE_KEY = "manualAttendanceCache";
+
 export default function ManualAttendance() {
   const { employees, loading: employeesLoading } = useEmployees();
   const { submitManualAttendance } = useAttendance();
@@ -45,7 +58,8 @@ export default function ManualAttendance() {
 
   // Filters
   const [searchText, setSearchText] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [jobPositionFilter, setJobPositionFilter] = useState("all");
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -53,24 +67,35 @@ export default function ManualAttendance() {
   const [pageNumber, setPageNumber] = useState(1);
   const pageSize = 20;
 
+  // Load cached values
+  const getCache = (): AttendanceCache =>
+    JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "{}");
+  const setCache = (cache: AttendanceCache) =>
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cache));
+
   // Initialize Records
   useEffect(() => {
     if (!employeesLoading && employees.length > 0) {
       const today = new Date().toISOString().split("T")[0];
+      const cache = getCache();
+
       setManualRecords(
-        employees.map((emp) => ({
-          employeeId: emp.id.toString(),
-          employeeName:
-            emp.fullName ??
-            `${emp.firstName ?? ""} ${emp.lastName ?? ""}`.trim(),
-          department: emp.department ?? "N/A",
-          date: today,
-          checkIn: "",
-          checkOut: "",
-          checkInStatus: "pending",
-          checkOutStatus: "pending",
-          disabled: false,
-        }))
+        employees.map((emp) => {
+          const cached = cache[emp.id] || {};
+          return {
+            employeeId: emp.id.toString(),
+            employeeName:
+              emp.fullName ??
+              `${emp.firstName ?? ""} ${emp.lastName ?? ""}`.trim(),
+            jobPosition: emp.jobPosition ?? "N/A", // <-- use jobPosition
+            date: cached.date || today,
+            checkIn: cached.checkIn || "",
+            checkOut: cached.checkOut || "",
+            checkInStatus: cached.checkInStatus || "pending",
+            checkOutStatus: cached.checkOutStatus || "pending",
+            disabled: false,
+          };
+        })
       );
     }
   }, [employees, employeesLoading]);
@@ -83,7 +108,6 @@ export default function ManualAttendance() {
       return "Check-In cannot be later than Check-Out.";
     return null;
   };
-
   const getRowInvalid = (rec: ManualRecord) => validateRecord(rec) !== null;
 
   // Handlers
@@ -101,19 +125,39 @@ export default function ManualAttendance() {
         if (field === "checkIn") updatedRec.checkInStatus = "pending";
         if (field === "checkOut") updatedRec.checkOutStatus = "pending";
 
+        const cache = getCache();
+        cache[employeeId] = {
+          ...cache[employeeId],
+          [field]: value,
+          checkInStatus: updatedRec.checkInStatus,
+          checkOutStatus: updatedRec.checkOutStatus,
+        };
+        setCache(cache);
+
         return updatedRec;
       })
     );
   };
+
   const autofillAll = () => {
     setManualRecords((prev) =>
-      prev.map((rec) => ({
-        ...rec,
-        checkIn: "08:00",
-        checkOut: "17:00",
-        checkInStatus: "pending",
-        checkOutStatus: "pending",
-      }))
+      prev.map((rec) => {
+        const updated = {
+          ...rec,
+          checkIn: "08:00",
+          checkOut: "17:00",
+          checkInStatus: "pending" as "pending",
+          checkOutStatus: "pending" as "pending",
+        };
+        const cache = getCache();
+        cache[rec.employeeId] = {
+          ...cache[rec.employeeId],
+          checkIn: "08:00",
+          checkOut: "17:00",
+        };
+        setCache(cache);
+        return updated;
+      })
     );
     toast.success("Auto-filled for all employees.");
   };
@@ -122,7 +166,6 @@ export default function ManualAttendance() {
     const validation = validateRecord(rec);
     if (validation) return toast.error(validation);
 
-    // Disable row during submission
     setManualRecords((prev) =>
       prev.map((r) =>
         r.employeeId === rec.employeeId ? { ...r, disabled: true } : r
@@ -130,44 +173,53 @@ export default function ManualAttendance() {
     );
 
     try {
-      const res = await submitManualAttendance([rec], true); // single record wrapped in array
-
-      // Check if API returned an error for this employee
+      const res = await submitManualAttendance([rec], true);
       const errorMsg = (res.data.errors || []).find((err: string) =>
         err.includes(`Employee ${rec.employeeId}`)
       );
 
       setManualRecords((prev) =>
-        prev.map((r) =>
-          r.employeeId === rec.employeeId
-            ? {
-                ...r,
-                checkInStatus: errorMsg
-                  ? r.checkIn
-                    ? "error"
-                    : r.checkInStatus
-                  : r.checkIn
-                  ? "success"
-                  : r.checkInStatus,
-                checkOutStatus: errorMsg
-                  ? r.checkOut
-                    ? "error"
-                    : r.checkOutStatus
-                  : r.checkOut
-                  ? "success"
-                  : r.checkOutStatus,
-                disabled: false,
-                errorMessage: errorMsg || undefined,
-              }
-            : r
-        )
+        prev.map((r) => {
+          if (r.employeeId !== rec.employeeId) return r;
+          const updated = {
+            ...r,
+            checkInStatus: errorMsg
+              ? r.checkIn
+                ? "error"
+                : r.checkInStatus
+              : r.checkIn
+              ? "success"
+              : r.checkInStatus,
+            checkOutStatus: errorMsg
+              ? r.checkOut
+                ? "error"
+                : r.checkOutStatus
+              : r.checkOut
+              ? "success"
+              : r.checkOutStatus,
+            disabled: false,
+            errorMessage: errorMsg || undefined,
+          };
+
+          // Clear cache if successful
+          if (!errorMsg) {
+            const cache = getCache();
+            delete cache[rec.employeeId];
+            setCache(cache);
+          }
+
+          return updated;
+        })
       );
 
       if (errorMsg) {
-        toast.error(`Failed to mark attendance for ${rec.employeeName}`);
-      } else {
-        toast.success(`${rec.employeeName}'s attendance recorded!`);
-      }
+        const msg = errorMsg.toLowerCase();
+        if (msg.includes("already checked in"))
+          toast(`✅ ${rec.employeeName} has already checked in.`);
+        else if (msg.includes("already checked out"))
+          toast(`✅ ${rec.employeeName} has already checked out.`);
+        else toast.error(`Failed to mark attendance for ${rec.employeeName}`);
+      } else toast.success(`${rec.employeeName}'s attendance recorded!`);
     } catch {
       setManualRecords((prev) =>
         prev.map((r) =>
@@ -188,24 +240,33 @@ export default function ManualAttendance() {
   };
 
   const handleBulkMark = async () => {
-    // Validate rows
     const invalidRows = manualRecords.filter((rec) => getRowInvalid(rec));
-    if (invalidRows.length > 0) {
+    if (invalidRows.length > 0)
       return toast.error("Fix invalid rows before submitting.");
-    }
 
-    // Filter records with check-in or check-out
     const filledRecords = manualRecords.filter((r) => r.checkIn || r.checkOut);
-    if (filledRecords.length === 0) {
+    if (filledRecords.length === 0)
       return toast.error("No check-in or check-out times filled.");
-    }
 
     setLoading(true);
+
+    // Mark all as disabled and pending
+    setManualRecords((prev) =>
+      prev.map((r) =>
+        filledRecords.find((f) => f.employeeId === r.employeeId)
+          ? {
+              ...r,
+              disabled: true,
+              checkInStatus: r.checkIn ? "pending" : r.checkInStatus,
+              checkOutStatus: r.checkOut ? "pending" : r.checkOutStatus,
+            }
+          : r
+      )
+    );
 
     try {
       const res = await submitManualAttendance(filledRecords, true);
 
-      // Extract failed employee IDs with messages
       const failedIdsWithMessages = (res.data.errors || [])
         .map((err: string) => {
           const match = err.match(/Employee (\d+).*/);
@@ -213,20 +274,33 @@ export default function ManualAttendance() {
         })
         .filter(Boolean) as { id: string; message: string }[];
 
-      // Update statuses based on success/failure
+      const cache = getCache();
+
       setManualRecords((prev) =>
         prev.map((r) => {
-          const fail = failedIdsWithMessages.find((f) => f.id === r.employeeId);
-          if (fail) {
+          const failed = failedIdsWithMessages.find(
+            (f) => f.id === r.employeeId
+          );
+
+          if (failed) {
+            // Error case
+            cache[r.employeeId] = {
+              ...cache[r.employeeId],
+              checkIn: r.checkIn,
+              checkOut: r.checkOut,
+              checkInStatus: r.checkIn ? "error" : r.checkInStatus,
+              checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
+            };
             return {
               ...r,
               checkInStatus: r.checkIn ? "error" : r.checkInStatus,
               checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
               disabled: false,
-              errorMessage: fail.message,
+              errorMessage: failed.message,
             };
-          }
-          if (r.checkIn || r.checkOut) {
+          } else if (r.checkIn || r.checkOut) {
+            // Success case – remove cache
+            delete cache[r.employeeId];
             return {
               ...r,
               checkInStatus: r.checkIn ? "success" : r.checkInStatus,
@@ -239,7 +313,8 @@ export default function ManualAttendance() {
         })
       );
 
-      // Show toast message
+      setCache(cache);
+
       if (failedIdsWithMessages.length > 0) {
         toast.error(
           `${failedIdsWithMessages.length} record(s) failed. Others marked successfully.`
@@ -248,16 +323,20 @@ export default function ManualAttendance() {
         toast.success("Bulk attendance submitted successfully!");
       }
     } catch {
-      toast.error("Bulk submission failed.");
-      // Mark all as error
+      toast.error("Bulk submission failed due to network/server error.");
       setManualRecords((prev) =>
-        prev.map((r) => ({
-          ...r,
-          checkInStatus: r.checkIn ? "error" : r.checkInStatus,
-          checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
-          disabled: false,
-          errorMessage: "Submission failed due to network or server error.",
-        }))
+        prev.map((r) =>
+          filledRecords.find((f) => f.employeeId === r.employeeId)
+            ? {
+                ...r,
+                checkInStatus: r.checkIn ? "error" : r.checkInStatus,
+                checkOutStatus: r.checkOut ? "error" : r.checkOutStatus,
+                disabled: false,
+                errorMessage:
+                  "Submission failed due to network or server error.",
+              }
+            : r
+        )
       );
     } finally {
       setLoading(false);
@@ -270,13 +349,13 @@ export default function ManualAttendance() {
       const matchesSearch = r.employeeName
         .toLowerCase()
         .includes(searchText.toLowerCase());
-      const matchesDept =
-        departmentFilter === "all" || r.department === departmentFilter;
+      const matchesJob =
+        jobPositionFilter === "all" || r.jobPosition === jobPositionFilter;
       const matchesStart = !startDate || r.date >= startDate;
       const matchesEnd = !endDate || r.date <= endDate;
-      return matchesSearch && matchesDept && matchesStart && matchesEnd;
+      return matchesSearch && matchesJob && matchesStart && matchesEnd;
     });
-  }, [manualRecords, searchText, departmentFilter, startDate, endDate]);
+  }, [manualRecords, searchText, jobPositionFilter, startDate, endDate]);
 
   const totalPages = Math.ceil(filteredRecords.length / pageSize);
   const paginatedRecords = useMemo(() => {
@@ -303,7 +382,6 @@ export default function ManualAttendance() {
     return pages;
   };
 
-  // Render
   if (employeesLoading) return <p>Loading employees...</p>;
 
   return (
@@ -349,21 +427,21 @@ export default function ManualAttendance() {
           </div>
           <Select
             onValueChange={(value) => {
-              setDepartmentFilter(value);
+              setJobPositionFilter(value);
               setPageNumber(1);
             }}
-            value={departmentFilter}
+            value={jobPositionFilter}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="All Departments" />
+              <SelectValue placeholder="All Roles" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               {Array.from(
-                new Set(employees.map((e) => e.department?.trim() || "N/A"))
-              ).map((dept, idx) => (
-                <SelectItem key={`${dept}-${idx}`} value={dept}>
-                  {dept}
+                new Set(employees.map((e) => e.jobPosition?.trim() || "N/A"))
+              ).map((job, idx) => (
+                <SelectItem key={`${job}-${idx}`} value={job}>
+                  {job}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -377,7 +455,7 @@ export default function ManualAttendance() {
           <thead className="bg-gray-50 sticky top-0 z-10 shadow">
             <tr className="text-left text-gray-600 font-medium">
               <th className="p-3">Employee</th>
-              <th className="p-3">Dept</th>
+              <th className="p-3">Role</th>
               <th className="p-3">Date</th>
               <th className="p-3">Check-In</th>
               <th className="p-3">Check-Out</th>
@@ -386,7 +464,7 @@ export default function ManualAttendance() {
             </tr>
           </thead>
           <tbody>
-            {paginatedRecords.map((rec, idx) => {
+            {paginatedRecords.map((rec) => {
               const invalid = getRowInvalid(rec);
               return (
                 <tr
@@ -395,11 +473,8 @@ export default function ManualAttendance() {
                     invalid ? "bg-red-50" : "hover:bg-gray-50 transition"
                   }`}
                 >
-                  {/* Employee Info */}
                   <td className="p-2">{rec.employeeName}</td>
-                  <td className="p-2">{rec.department}</td>
-
-                  {/* Date */}
+                  <td className="p-2">{rec.jobPosition}</td>
                   <td className="p-2">
                     <input
                       type="date"
@@ -415,8 +490,6 @@ export default function ManualAttendance() {
                       }`}
                     />
                   </td>
-
-                  {/* Check-In */}
                   <td className="p-2">
                     <input
                       type="time"
@@ -435,8 +508,6 @@ export default function ManualAttendance() {
                       }`}
                     />
                   </td>
-
-                  {/* Check-Out */}
                   <td className="p-2">
                     <input
                       type="time"
@@ -455,8 +526,6 @@ export default function ManualAttendance() {
                       }`}
                     />
                   </td>
-
-                  {/* Status (stacked vertically) */}
                   <td className="p-2 text-center">
                     <div className="flex gap-1 items-center justify-center">
                       {rec.checkInStatus === "success" && (
@@ -468,7 +537,6 @@ export default function ManualAttendance() {
                       {rec.checkInStatus === "pending" && (
                         <Clock className="text-gray-400" size={16} />
                       )}
-
                       {rec.checkOutStatus === "success" && (
                         <CheckCircle className="text-blue-600" size={16} />
                       )}
@@ -480,8 +548,6 @@ export default function ManualAttendance() {
                       )}
                     </div>
                   </td>
-
-                  {/* Actions (buttons stay horizontal) */}
                   <td className="p-2 flex flex-col gap-1 items-center justify-center">
                     <Button
                       size="sm"
@@ -499,15 +565,11 @@ export default function ManualAttendance() {
                         "Submit"
                       )}
                     </Button>
-
-                    {/* Error message */}
                     {rec.errorMessage && (
-                      <span
-                        className="text-xs text-red-600 mt-1"
-                        title={rec.errorMessage}
-                      >
-                        ⚠ {rec.errorMessage}
-                      </span>
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-100 border border-red-300 text-red-800 px-3 py-1 rounded shadow text-xs flex items-center gap-1 animate-slide-down">
+                        <AlertCircle size={14} />
+                        {rec.errorMessage}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -544,7 +606,6 @@ export default function ManualAttendance() {
                 </PaginationItem>
               )
             )}
-
             <PaginationItem>
               <PaginationNext
                 href="#"
