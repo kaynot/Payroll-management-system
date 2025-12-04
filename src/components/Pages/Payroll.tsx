@@ -1,4 +1,3 @@
-// src/components/Payroll.tsx
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
@@ -56,7 +55,7 @@ const EMPLOYEE_API = "http://localhost:7002/api/Employee/employees";
 const AUTH_TOKEN = "YOUR_LATEST_JWT_TOKEN_HERE"; // ← Update this!
 
 // ──────────────────────────────────────────────────────────────────────────────
-// TYPES
+// TYPES 
 // ──────────────────────────────────────────────────────────────────────────────
 interface Employee {
   id: number;
@@ -96,6 +95,7 @@ export default function Payroll() {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [generatingPayslip, setGeneratingPayslip] = useState<number | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -116,6 +116,7 @@ export default function Payroll() {
   const [form, setForm] = useState({
     id: 0,
     employeeId: 0,
+    jobPosition: "",
     payPeriod: new Date().toISOString().slice(0, 10),
     basicSalary: 0,
     allowance: 0,
@@ -213,6 +214,7 @@ export default function Payroll() {
       setForm({
         id: record.id,
         employeeId: record.employeeId,
+        jobPosition: record.employee.jobPosition,
         payPeriod: record.payperiod.slice(0, 10),
         basicSalary: record.basicSalary,
         allowance: record.allowance,
@@ -226,6 +228,7 @@ export default function Payroll() {
       setForm({
         id: 0,
         employeeId: 0,
+        jobPosition: "",
         payPeriod: new Date().toISOString().slice(0, 10),
         basicSalary: 0,
         allowance: 0,
@@ -238,13 +241,22 @@ export default function Payroll() {
     setFormOpen(true);
   };
 
+  const handleEmployeeChange = (employeeId: string) => {
+    const emp = employees.find((e) => e.id === Number(employeeId));
+    setForm({
+      ...form,
+      employeeId: Number(employeeId),
+      jobPosition: emp?.jobPosition || "",
+    });
+  };
+
   const handleSave = async () => {
     if (!form.employeeId) return toast.error("Please select an employee");
     if (form.basicSalary <= 0) return toast.error("Basic salary is required");
 
     setSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         employeeId: form.employeeId,
         payPeriod: `${form.payPeriod}T00:00:00Z`,
         basicSalary: form.basicSalary,
@@ -255,8 +267,11 @@ export default function Payroll() {
         totalDeduction,
         netPay,
         payrollStatus: form.payrollStatus,
-        paidDate: form.payrollStatus === "Paid" ? new Date().toISOString() : null,
       };
+
+      if (form.payrollStatus === "Paid") {
+        payload.paidDate = new Date().toISOString();
+      }
 
       const url = isEdit ? `${API_BASE}/payroll/${form.id}` : `${API_BASE}/payroll`;
       const method = isEdit ? "PUT" : "POST";
@@ -270,7 +285,10 @@ export default function Payroll() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error(await res.text() || "Save failed");
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Save failed");
+      }
 
       toast.success(isEdit ? "Payroll updated!" : "Payroll added successfully!");
       setFormOpen(false);
@@ -283,15 +301,18 @@ export default function Payroll() {
   };
 
   // ──────────────────────────────────────────────────────────────────────────────
-  // PAYSLIP GENERATION (FULLY WORKING)
+  // PAYSLIP GENERATION - FIXED VERSION
   // ──────────────────────────────────────────────────────────────────────────────
   const generatePayslip = async (record: PayrollRecord) => {
+    setGeneratingPayslip(record.id);
+    
     try {
       const res = await fetch(`${API_BASE}/payslip`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${AUTH_TOKEN}`,
+          Accept: "application/pdf",
         },
         body: JSON.stringify({
           id: record.id,
@@ -311,19 +332,54 @@ export default function Payroll() {
         }),
       });
 
-      if (!res.ok) throw new Error("Payslip failed");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Payslip API Error:", errorText);
+        throw new Error(`Failed to generate payslip: ${res.status} ${res.statusText}`);
+      }
 
+      // Check if response is actually a PDF
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/pdf")) {
+        console.warn("Response is not a PDF. Content-Type:", contentType);
+        const text = await res.text();
+        console.error("Response body:", text);
+        throw new Error("Server did not return a valid PDF file");
+      }
+
+      // Get the blob
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      
+      // Verify blob size
+      if (blob.size === 0) {
+        throw new Error("Received empty PDF file");
+      }
+
+      console.log("PDF blob size:", blob.size, "bytes");
+
+      // Create download link with proper cleanup
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
+      a.style.display = "none";
       a.href = url;
       a.download = `Payslip_${record.employee.firstName}_${record.employee.surname}_${record.payperiod.slice(0, 7)}.pdf`;
+      
+      // Append to body, click, and cleanup
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      
+      // Cleanup after a short delay
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
 
-      toast.success("Payslip downloaded!");
-    } catch {
-      toast.error("Could not generate payslip");
+      toast.success("Payslip downloaded successfully!");
+    } catch (error: any) {
+      console.error("Payslip generation error:", error);
+      toast.error(error.message || "Could not generate payslip. Please try again.");
+    } finally {
+      setGeneratingPayslip(null);
     }
   };
 
@@ -356,7 +412,7 @@ export default function Payroll() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Payroll Management</h1>
-          <p className="text-muted-foreground">{totalRecords} records</p>
+          <p ></p>    
         </div>
         <div className="flex gap-3">
           <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
@@ -368,6 +424,7 @@ export default function Payroll() {
             Add Payroll
           </Button>
         </div>
+        
       </div>
 
       {/* Summary Cards */}
@@ -421,8 +478,8 @@ export default function Payroll() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Basic </TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Basic</TableHead>
               <TableHead>Allowance</TableHead>
               <TableHead>Deduction</TableHead>
               <TableHead>Net Pay</TableHead>
@@ -437,53 +494,67 @@ export default function Payroll() {
                   <Loader2 className="w-8 h-8 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : data.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">
-                  {r.employee.firstName} {r.employee.surname}
-                </TableCell>
-                <TableCell>
-                  {new Date(r.payperiod).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
-                </TableCell>
-                <TableCell>{formatCurrency(r.basicSalary)}</TableCell>
-                <TableCell>{formatCurrency(r.allowance)}</TableCell>
-                <TableCell className="text-red-600">{formatCurrency(r.totalDeduction)}</TableCell>
-                <TableCell className="font-bold text-green-600">{formatCurrency(r.netPay)}</TableCell>
-                <TableCell>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    r.payrollStatus === "Paid" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
-                  }`}>
-                    {r.payrollStatus}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <EllipsisVertical className="w-5 h-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => openModal(r)}>
-                        <SquarePen className="w-4 h-4 mr-2" /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => generatePayslip(r)}>
-                        <FileCheck className="w-4 h-4 mr-2" /> Payslip
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onSelect={() => {
-                          setDeleteId(r.id);
-                          setDeleteOpen(true);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  No payroll records found
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">
+                    {r.employee.firstName} {r.employee.surname}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{r.employee.jobPosition}</TableCell>
+                  <TableCell>{formatCurrency(r.basicSalary)}</TableCell>
+                  <TableCell>{formatCurrency(r.allowance)}</TableCell>
+                  <TableCell className="text-red-600">{formatCurrency(r.totalDeduction)}</TableCell>
+                  <TableCell className="font-bold text-green-600">{formatCurrency(r.netPay)}</TableCell>
+                  <TableCell>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      r.payrollStatus === "Paid" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+                    }`}>
+                      {r.payrollStatus}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <EllipsisVertical className="w-5 h-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => openModal(r)}>
+                          <SquarePen className="w-4 h-4 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onSelect={() => generatePayslip(r)}
+                          disabled={generatingPayslip === r.id}
+                        >
+                          {generatingPayslip === r.id ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <FileCheck className="w-4 h-4 mr-2" />
+                          )}
+                          {generatingPayslip === r.id ? "Generating..." : "Payslip"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onSelect={() => {
+                            setDeleteId(r.id);
+                            setDeleteOpen(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -498,12 +569,15 @@ export default function Payroll() {
           <div className="grid grid-cols-2 gap-6 py-4">
             <div className="space-y-2">
               <Label>Employee *</Label>
-              <Select value={form.employeeId.toString()} onValueChange={(v) => setForm({ ...form, employeeId: Number(v) })}>
+              <Select 
+                value={form.employeeId.toString()} 
+                onValueChange={handleEmployeeChange}
+              >
                 <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
                 <SelectContent>
                   {employees.map((e) => (
                     <SelectItem key={e.id} value={e.id.toString()}>
-                     rcx {e.firstName} {e.surname} – {e.jobPosition}
+                      {e.firstName} {e.surname}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -511,38 +585,76 @@ export default function Payroll() {
             </div>
 
             <div className="space-y-2">
+              <Label>Job Position</Label>
+              <Input 
+                value={form.jobPosition} 
+                onChange={(e) => setForm({ ...form, jobPosition: e.target.value })}
+                placeholder="Auto-filled from employee"
+                disabled
+                className="bg-muted"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label>Pay Date *</Label>
-              <Input type="date" value={form.payPeriod} onChange={(e) => setForm({ ...form, payPeriod: e.target.value })} />
+              <Input 
+                type="date" 
+                value={form.payPeriod} 
+                onChange={(e) => setForm({ ...form, payPeriod: e.target.value })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Basic Salary *</Label>
-              <Input type="number" value={form.basicSalary} onChange={(e) => setForm({ ...form, basicSalary: Number(e.target.value) })} />
+              <Input 
+                type="number" 
+                value={form.basicSalary} 
+                onChange={(e) => setForm({ ...form, basicSalary: Number(e.target.value) })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Allowance</Label>
-              <Input type="number" value={form.allowance} onChange={(e) => setForm({ ...form, allowance: Number(e.target.value) })} />
+              <Input 
+                type="number" 
+                value={form.allowance} 
+                onChange={(e) => setForm({ ...form, allowance: Number(e.target.value) })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Tax</Label>
-              <Input type="number" value={form.tax} onChange={(e) => setForm({ ...form, tax: Number(e.target.value) })} />
+              <Input 
+                type="number" 
+                value={form.tax} 
+                onChange={(e) => setForm({ ...form, tax: Number(e.target.value) })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Loan</Label>
-              <Input type="number" value={form.loan} onChange={(e) => setForm({ ...form, loan: Number(e.target.value) })} />
+              <Input 
+                type="number" 
+                value={form.loan} 
+                onChange={(e) => setForm({ ...form, loan: Number(e.target.value) })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Other Deduction</Label>
-              <Input type="number" value={form.deduction} onChange={(e) => setForm({ ...form, deduction: Number(e.target.value) })} />
+              <Input 
+                type="number" 
+                value={form.deduction} 
+                onChange={(e) => setForm({ ...form, deduction: Number(e.target.value) })} 
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={form.payrollStatus} onValueChange={(v) => setForm({ ...form, payrollStatus: v as any })}>
+              <Select 
+                value={form.payrollStatus} 
+                onValueChange={(v) => setForm({ ...form, payrollStatus: v as any })}
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Pending">Pending</SelectItem>
