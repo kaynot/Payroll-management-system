@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Download,
@@ -33,6 +34,7 @@ import {
   DropdownMenuItem,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
+import { useCrudFunc } from "../../components/hooks/crud";
 
 export const Payroll = () => {
   type PayrollStatus =
@@ -59,6 +61,61 @@ export const Payroll = () => {
       {status.replace("_", " ")}
     </p>
   );
+
+  // --- Payroll Summary State ---
+  const [postData, updateData, patchData, fetchData, deleteData] =
+    useCrudFunc();
+  const [summary, setSummary] = useState<{
+    totalBasicSalary: number;
+    totalAllowance: number;
+    totalDeduction: number;
+    netPayroll: number;
+  } | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getSummary = async () => {
+      try {
+        setLoadingSummary(true);
+        const res = await fetchData("Payroll/Payroll%20summary");
+        setSummary(res.data.data);
+      } catch (err: any) {
+        setSummaryError(err.message || "Failed to fetch payroll summary");
+      } finally {
+        setLoadingSummary(false);
+      }
+    };
+    getSummary();
+  }, [fetchData]);
+
+  // --- Summary Cards ---
+  const summaryCards = [
+    {
+      title: "Total Basic Salary",
+      value: summary ? `GH₵ ${summary.totalBasicSalary}` : "Loading...",
+      desc: "This month",
+      color: "text-black",
+    },
+    {
+      title: "Total Allowances",
+      value: summary ? `GH₵ ${summary.totalAllowance}` : "Loading...",
+      desc: "Additional payments",
+      color: "text-amber-500",
+    },
+    {
+      title: "Total Deductions",
+      value: summary ? `GH₵ ${summary.totalDeduction}` : "Loading...",
+      desc: "Tax + SSNIT",
+      color: "text-red-500",
+    },
+    {
+      title: "Net Payroll",
+      value: summary ? `GH₵ ${summary.netPayroll}` : "Loading...",
+      desc: "Total payout",
+      color: "text-indigo-500",
+    },
+  ];
 
   return (
     <motion.main
@@ -88,32 +145,7 @@ export const Payroll = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          {
-            title: "Total Basic Salary",
-            value: "GH₵ 11,800",
-            desc: "This month",
-            color: "text-black",
-          },
-          {
-            title: "Total Allowances",
-            value: "GH₵ 1,400",
-            desc: "Additional payments",
-            color: "text-amber-500",
-          },
-          {
-            title: "Total Deductions",
-            value: "GH₵ 1,356",
-            desc: "Tax + SSNIT",
-            color: "text-red-500",
-          },
-          {
-            title: "Net Payroll",
-            value: "GH₵ 11,844",
-            desc: "Total payout",
-            color: "text-indigo-500",
-          },
-        ].map((item, i) => (
+        {summaryCards.map((item, i) => (
           <div
             key={i}
             className="bg-card rounded-xl shadow-sm border p-4 hover:shadow-md transition"
@@ -128,7 +160,6 @@ export const Payroll = () => {
       </div>
 
       {/* Table */}
-
       <div className="p-6 bg-card rounded-xl shadow-lg flex flex-col gap-6">
         {/* Header + Auto-fill */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -220,9 +251,7 @@ export const Payroll = () => {
                 <td className="p-4">GH₵ 420</td>
                 <td className="p-4">GH₵ 3,580</td>
                 <td className="p-4 flex justify-center">
-                  <td className="py-1 px-4 flex justify-center">
-                    <StatusBadge status="paid" />
-                  </td>
+                  <StatusBadge status="paid" />
                 </td>
 
                 <td className="p-4 text-center">
@@ -259,9 +288,7 @@ export const Payroll = () => {
                 <td className="p-4">GH₵ 420</td>
                 <td className="p-4">GH₵ 3,580</td>
                 <td className="p-4 flex justify-center">
-                  <td className="py-1px-4 flex justify-center">
-                    <StatusBadge status="pending" />
-                  </td>
+                  <StatusBadge status="pending" />
                 </td>
 
                 <td className="p-4 text-center">
