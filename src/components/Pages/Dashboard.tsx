@@ -27,12 +27,6 @@ export const Dashboard = () => {
   const { user } = useAuth(); // get logged-in user from context
   const displayName = user?.userName || "User";
 
-  // const [count, setCount] = useState(0);
-
-  // const increment = () => {
-  //   setCount(count + 1);
-  // };
-
   return (
     <motion.main
       initial={{ opacity: 0, y: 20 }}
@@ -105,9 +99,9 @@ export const Dashboard = () => {
       </section>
 
       {/* charts: Payroll trends, Department Distribution  */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-4 md:gap-6 lg:gap-6 w-full">
-        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-[full]">
-          <div className="flex justify-between items-center w-full">
+      <section className="grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-4 sm:gap-4 md:gap-6 lg:gap-6 w-full min-h-0">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-full min-h-0">
+          <div className="flex justify-between items-center w-full min-h-0">
             <div className="flex flex-col text-sm gap-2">
               <h3 className="font-medium text-lg">Payroll Trends</h3>
               <p className=" text-[#65758b]">Monthly payroll expenses</p>
@@ -125,12 +119,12 @@ export const Dashboard = () => {
               </Select>
             </div>
           </div>
-          <div className="w-full mt-4">
+          <div className="w-full h-[350px] min-h-0">
             <StackedBarChart />
           </div>
         </div>
 
-        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-full">
+        <div className="border-[1px] rounded-lg p-6 flex flex-col justify-start items-center gap-6 bg-card w-full min-h-0">
           <div className="flex justify-between items-center w-full">
             <div className="flex flex-col text-sm gap-2">
               <h3 className="font-medium text-lg">Department Distribution</h3>

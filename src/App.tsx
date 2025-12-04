@@ -9,7 +9,7 @@ import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import Attendance from "./components/Pages/Attendance";
 import ManualAttendance from "./components/Pages/ManualAttendance";
-import  Payroll  from "./components/Pages/Payroll";
+import Payroll from "./components/Pages/Payroll";
 import EmployeeCheckin from "./components/Pages/EmployeeCheckInOut";
 import SignUp from "./components/Pages/SignUp";
 
@@ -34,11 +34,13 @@ export const App = () => {
         <EmployeeProvider>
           <AttendanceProvider>
             <Routes>
-
               {/* Public Routes */}
               <Route path="/" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/employee-checkInOut" element={<EmployeeCheckin />} />
+              <Route
+                path="/employee-checkInOut"
+                element={<EmployeeCheckin />}
+              />
 
               {/* Protected Dashboard */}
               <Route
@@ -66,7 +68,10 @@ export const App = () => {
                 <Route path="attendance" element={<Attendance />} />
 
                 {/* Manual Attendance */}
-                <Route path="attendance/manual" element={<ManualAttendance />} />
+                <Route
+                  path="attendance/manual"
+                  element={<ManualAttendance />}
+                />
 
                 {/* Other Pages */}
                 <Route path="payroll" element={<Payroll />} />
@@ -95,7 +100,6 @@ export const App = () => {
                   </main>
                 }
               />
-
             </Routes>
 
             {/* Global Toast System */}
