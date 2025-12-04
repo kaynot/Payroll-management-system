@@ -5,7 +5,7 @@ interface SummaryCardProps {
   value: number | string;
   desc?: string;
   icon: LucideIcon;
-  color?: string; // tailwind text color
+  color?: string;
 }
 
 export const SummaryCard = ({

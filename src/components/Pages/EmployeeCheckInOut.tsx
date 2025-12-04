@@ -151,20 +151,22 @@ const CheckInOut = () => {
     return () => clearInterval(interval);
   }, [foundEmployee, cooldowns]);
 
-  // reset after midnight
+  // ----- Midnight Reset with Date Check -----
   useEffect(() => {
-    const resetAttendance = () => {
-      // Reset local state
-      setEmployeeMap({});
-      setCooldowns({});
-      setSearchResults([]);
-      setFoundEmployee(null);
+    const todayKey = new Date().toDateString(); // "Mon Dec 04 2025"
 
-      // Clear localStorage
-      localStorage.removeItem("employeeTimestamps");
-      localStorage.removeItem("attendanceCooldowns");
+    const savedKey = localStorage.getItem("attendanceDateKey");
 
-      // Schedule next reset at next midnight
+    // If date changed, reset immediately
+    if (savedKey !== todayKey) {
+      performReset();
+      localStorage.setItem("attendanceDateKey", todayKey);
+    }
+
+    // Schedule next midnight reset
+    scheduleMidnightReset();
+
+    function scheduleMidnightReset() {
       const now = new Date();
       const nextMidnight = new Date(
         now.getFullYear(),
@@ -175,25 +177,29 @@ const CheckInOut = () => {
         0,
         0
       );
-      const msUntilNextMidnight = nextMidnight.getTime() - now.getTime();
-      setTimeout(resetAttendance, msUntilNextMidnight);
-    };
+      const ms = nextMidnight.getTime() - now.getTime();
 
-    // Initial schedule
-    const now = new Date();
-    const nextMidnight = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0,
-      0,
-      0,
-      0
-    );
-    const msUntilMidnight = nextMidnight.getTime() - now.getTime();
-    const timer = setTimeout(resetAttendance, msUntilMidnight);
+      setTimeout(() => {
+        performReset();
 
-    return () => clearTimeout(timer); // cleanup on unmount
+        // Save new date key
+        const newKey = new Date().toDateString();
+        localStorage.setItem("attendanceDateKey", newKey);
+
+        // Schedule again recursively
+        scheduleMidnightReset();
+      }, ms);
+    }
+
+    function performReset() {
+      setEmployeeMap({});
+      setCooldowns({});
+      setSearchResults([]);
+      setFoundEmployee(null);
+
+      localStorage.removeItem("employeeTimestamps");
+      localStorage.removeItem("attendanceCooldowns");
+    }
   }, []);
 
   // -------------------- SEARCH --------------------
@@ -214,13 +220,13 @@ const CheckInOut = () => {
 
       if (results.length > 0) {
         const employees: Employee[] = results.map((emp: any) => {
-          const persisted =
-            employeeMap[emp.id] || getEmployeeTimestamps(emp.id);
+          const persisted = getEmployeeTimestamps(emp.id);
+
           return {
             id: emp.id,
             fullName: emp.fullName || emp.name,
             jobPosition: emp.jobPosition || "N/A",
-            status: persisted.lastCheckIn ? "in" : emp.status || "out",
+            status: emp.status || "out",
             lastCheckIn: persisted.lastCheckIn || emp.lastCheckIn || null,
             lastCheckOut: persisted.lastCheckOut || emp.lastCheckOut || null,
           };
@@ -461,7 +467,11 @@ const CheckInOut = () => {
                       const timestamps = getEmployeeTimestamps(
                         selectedEmployee.id
                       );
-                      setFoundEmployee({ ...selectedEmployee, ...timestamps });
+                      setFoundEmployee({
+                        ...selectedEmployee,
+                        lastCheckIn: timestamps.lastCheckIn,
+                        lastCheckOut: timestamps.lastCheckOut,
+                      });
                     } else {
                       setFoundEmployee(null);
                     }

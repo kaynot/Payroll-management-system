@@ -1,48 +1,74 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
+  CartesianGrid,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from "recharts";
 
+// demo data
 const data = [
-  { name: "January", "monthly trends": 2400, amount: 2400 },
-  { name: "February", "monthly trends": 7398, amount: 2210 },
-  { name: "March", "monthly trends": 9800, amount: 2290 },
-  { name: "April", "monthly trends": 3908, amount: 2000 },
-  { name: "May", "monthly trends": 4800, amount: 2181 },
-  { name: "June", "monthly trends": 3800, amount: 2500 },
-  { name: "July", "monthly trends": 4300, amount: 2100 },
+  { name: "January", value: 2400 },
+  { name: "February", value: 7398 },
+  { name: "March", value: 9800 },
+  { name: "April", value: 3908 },
+  { name: "May", value: 4800 },
+  { name: "June", value: 3800 },
+  { name: "July", value: 4300 },
 ];
 
+// --- Hook that observes actual pixel dimensions ---
+function useMeasure() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [bounds, setBounds] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setBounds({ width, height });
+    });
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return [ref, bounds] as const;
+}
+
 const StackedBarChart = () => {
+  const [ref, { width, height }] = useMeasure();
+
   return (
-    <div className="w-full h-[350px] max-w-3xl">
-      <ResponsiveContainer width="100%" height="100%">
+    <div
+      ref={ref}
+      className="w-full h-[350px] max-w-3xl rounded-xl bg-white dark:bg-card shadow-sm border p-4"
+    >
+      {/* Render nothing until actual height/width exist */}
+      {width > 0 && height > 0 && (
         <BarChart
+          width={width}
+          height={height - 20} // padding for header
           data={data}
-          margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+          margin={{ top: 10, right: 20, left: 0, bottom: -20 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
+          <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+          <XAxis dataKey="name" tick={{ fill: "#6B7280", fontSize: 12 }} />
+          <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
+          <Tooltip cursor={{ fill: "rgba(79, 70, 229, 0.05)" }} />
           <Legend />
           <Bar
-            dataKey="monthly trends"
-            stackId="a"
-            fill="#4F46E5"
-            barSize={80}
-            radius={[10, 10, 0, 0]}
+            dataKey="value"
+            fill="#4F46E5" // same indigo theme
+            radius={[8, 8, 0, 0]} // smooth rounded top
+            maxBarSize={60}
           />
-          {/* Indigo 500 */}
         </BarChart>
-      </ResponsiveContainer>
+      )}
     </div>
   );
 };

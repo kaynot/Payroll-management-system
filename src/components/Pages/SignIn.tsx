@@ -33,85 +33,93 @@ export default function SignIn() {
   };
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    const response = await posting("Auth/Login", {
-      userNameOrEmail: form.emailOrUsername.trim(),
-      password: form.password.trim(),
-    });
-
-    const { statusCode, message, data } = response?.data || {};
-    const msg = message?.toLowerCase() || "";
-
-    // SUCCESS
-    if (statusCode === 200 && data?.user && data?.token?.token) {
-      const user = data.user;
-      const token = data.token.token;
-
-      login(user, token);
-
-      toast.success("Login successful!", {
-        description: `Welcome back, ${user.firstName || "User"} 👋`,
+    try {
+      const response = await posting("Auth/Login", {
+        userNameOrEmail: form.emailOrUsername.trim(),
+        password: form.password.trim(),
       });
 
-      const redirectTo =
-        (location.state as any)?.from?.pathname || "/dashboard";
+      const { statusCode, message, data } = response?.data || {};
+      const msg = message?.toLowerCase() || "";
 
-      setTimeout(() => navigate(redirectTo, { replace: true }), 1000);
-      return;
+      // SUCCESS
+      if (statusCode === 200 && data?.user && data?.token?.token) {
+        const user = data.user;
+        const token = data.token.token;
+
+        login(user, token);
+
+        toast.success("Login successful!", {
+          description: `Welcome back, ${user.firstName || "User"} 👋`,
+        });
+
+        const redirectTo =
+          (location.state as any)?.from?.pathname || "/dashboard";
+
+        setTimeout(() => navigate(redirectTo, { replace: true }), 1000);
+        return;
+      }
+
+      // HANDLE EXPECTED LOGIN FAILURES
+      const authFailureTexts = [
+        "wrong username or password",
+        "invalid",
+        "incorrect",
+        "unauthorized",
+        "credentials",
+      ];
+
+      if (authFailureTexts.some((m) => msg.includes(m)) || statusCode === 401) {
+        toast.error("Invalid username or password.");
+        return;
+      }
+
+      // USER NOT FOUND
+      if (msg.includes("not found")) {
+        toast.error("User not found. Please register first.");
+        return;
+      }
+
+      // OTHER API ERRORS
+      toast.error(message || "Login failed. Try again.");
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      const status = error.response?.status;
+      const backendMsg = error.response?.data?.message?.toLowerCase() || "";
+
+      const authFailureTexts = [
+        "wrong username or password",
+        "invalid",
+        "incorrect",
+        "credentials",
+        "unauthorized",
+      ];
+
+      if (
+        authFailureTexts.some((m) => backendMsg.includes(m)) ||
+        status === 401
+      ) {
+        toast.error("Invalid username or password.");
+      } else if (status >= 500) {
+        // Server-side error
+        toast.error("Server error. Please try again later.");
+      } else if (!status) {
+        // Network error / no response
+        toast.error("Network error. Check your connection.");
+      } else {
+        // Other API errors
+        toast.error(
+          backendMsg || "Something went wrong. Please try again later."
+        );
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    // HANDLE EXPECTED LOGIN FAILURES
-    const authFailureTexts = [
-      "wrong username or password",
-      "invalid",
-      "incorrect",
-      "unauthorized",
-      "credentials",
-    ];
-
-    if (authFailureTexts.some((m) => msg.includes(m)) || statusCode === 401) {
-      toast.error("Invalid username or password.");
-      return;
-    }
-
-    // USER NOT FOUND
-    if (msg.includes("not found")) {
-      toast.error("User not found. Please register first.");
-      return;
-    }
-
-    // OTHER API ERRORS
-    toast.error(message || "Login failed. Try again.");
-  } catch (error: any) {
-    console.error("Login error:", error);
-
-    const backendMsg = error.response?.data?.message?.toLowerCase() || "";
-
-    const authFailureTexts = [
-      "wrong username or password",
-      "invalid",
-      "incorrect",
-      "credentials",
-      "unauthorized",
-    ];
-
-    if (
-      authFailureTexts.some((m) => backendMsg.includes(m)) ||
-      error.response?.status === 401
-    ) {
-      toast.error("Invalid username or password.");
-    } else {
-      toast.error(
-        error.response?.data?.message || "Something went wrong. Please try again later."
-      );
-    }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <AuthLayout>

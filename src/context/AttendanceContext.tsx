@@ -82,7 +82,7 @@ interface AttendanceContextType {
   submitManualAttendance: (
     records: ManualAttendanceRecord[],
     bulk?: boolean
-  ) => Promise<void>;
+  ) => Promise<any>;
 }
 
 // ------------------ Context ------------------
@@ -257,16 +257,18 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   const submitManualAttendance = async (
     records: ManualAttendanceRecord[],
     bulk: boolean = false
-  ) => {
-    if (!token) return navigate("/", { replace: true });
-    if (!records || records.length === 0) return;
+  ): Promise<any> => {
+    // <-- return type
+    if (!token) return navigate("/", { replace: true }) as any;
+    if (!records || records.length === 0) return { errors: [] };
 
     try {
       setLoading(true);
+
       const validRecords = records.filter(
         (r) => r.checkIn?.trim() || r.checkOut?.trim()
       );
-      if (validRecords.length === 0) return;
+      if (validRecords.length === 0) return { errors: [] };
 
       const mappedRecords = validRecords.map((r) => ({
         employeeId: Number(r.employeeId),
@@ -302,10 +304,14 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
         );
       }
 
+      const data = await res.json();
       await refreshAttendance();
+
+      return data;
     } catch (err) {
       console.error("submitManualAttendance error:", err);
       setFetchError(err);
+      return { errors: [String(err)] }; // always return object
     } finally {
       setLoading(false);
     }
