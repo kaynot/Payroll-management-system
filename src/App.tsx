@@ -9,7 +9,7 @@ import Reports from "./components/Pages/Reports";
 import Settings from "./components/Pages/Settings";
 import Attendance from "./components/Pages/Attendance";
 import ManualAttendance from "./components/Pages/ManualAttendance";
-import Payroll from "./components/Pages/Payroll";
+import { Payroll } from "./components/Pages/Payroll";
 import EmployeeCheckin from "./components/Pages/EmployeeCheckInOut";
 import SignUp from "./components/Pages/SignUp";
 
